@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediPortal Dashboard</title>
+    <style>
+        /* GLOBAL THEME */
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            margin: 0;
+            padding: 20px;
+            color: #333;
+            min-height: 100vh;
+        }
+
+        /* LAYOUT CONTAINER */
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        /* HEADER SECTION */
+        .header {
+            background: #fff;
+            padding: 20px 30px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .brand { font-size: 24px; font-weight: bold; color: #2c3e50; display: flex; align-items: center; gap: 10px; }
+        .user-info { display: flex; align-items: center; gap: 15px; font-size: 14px; }
+        
+        /* LOGOUT BUTTON */
+        .btn-logout {
+            background: #fee2e2;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover { background: #fca5a5; color: #7f1d1d; }
+
+        /* ROLE BADGES */
+        .badge { padding: 4px 10px; border-radius: 20px; color: white; font-size: 12px; text-transform: uppercase; font-weight: bold; letter-spacing: 0.5px; }
+        .role-doctor { background: #3b82f6; box-shadow: 0 2px 5px rgba(59, 130, 246, 0.4); }
+        .role-nurse { background: #14b8a6; box-shadow: 0 2px 5px rgba(20, 184, 166, 0.4); }
+        .role-billing { background: #f59e0b; box-shadow: 0 2px 5px rgba(245, 158, 11, 0.4); }
+
+        /* MAIN CONTENT */
+        .content { padding: 30px; }
+        
+        /* SEARCH BAR AREA */
+        .search-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        input[type="text"]:focus { border-color: #3b82f6; }
+        
+        .btn-ask {
+            padding: 0 30px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .btn-ask:hover { background: #2563eb; }
+        .btn-ask:disabled { background: #9ca3af; cursor: not-allowed; }
+
+        /* SQL DEBUG BOX */
+        .sql-box {
+            background: #1e293b;
+            color: #4ade80;
+            font-family: 'Courier New', monospace;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 25px;
+            display: none; /* Hidden until needed */
+        }
+        .sql-label { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-bottom: 5px; display: block; }
+
+        /* RESULTS TABLE */
+        .results-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background-color: #f8fafc; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 12px; }
+        tr:hover { background-color: #f1f5f9; }
+        td { color: #334155; font-size: 14px; }
+
+        /* EMPTY STATE */
+        .empty-state {
+            text-align: center;
+            color: #94a3b8;
+            padding: 40px;
+            border: 2px dashed #e2e8f0;
+            border-radius: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <div class="brand">
+                <span>🏥</span> MediPortal
+            </div>
+            <div class="user-info">
+                <span>Welcome, <b id="uName">...</b></span>
+                <span id="uRole" class="badge">Checking...</span>
+                <button onclick="logout()" class="btn-logout">Sign Out</button>
+            </div>
+        </div>
+
+        <div class="content">
+            
+            <div class="search-area">
+                <input type="text" id="query" placeholder="Ask a question (e.g., 'Show me all patients with Hypertension')">
+                <button onclick="ask()" id="askBtn" class="btn-ask">Ask AI</button>
+            </div>
+
+            <div id="sqlContainer" class="sql-box">
+                <span class="sql-label">AI Generated Query</span>
+                <div id="sqlText"></div>
+            </div>
+
+            <h3 style="color: #475569; font-size: 18px; margin-bottom: 15px;">Search Results</h3>
+            <div id="resultsArea" class="results-container">
+                <div class="empty-state">
+                    Results will appear here...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 1. SESSION CHECK (Matches Login Page Keys)
+        const role = sessionStorage.getItem("hospitalRole");
+        const user = sessionStorage.getItem("hospitalUser");
+
+        // If no session, kick back to login
+        if (!role || !user) {
+            window.location.href = "index.html";
+        } else {
+            // Update Header
+            document.getElementById("uName").innerText = user;
+            const roleBadge = document.getElementById("uRole");
+            roleBadge.innerText = role.toUpperCase();
+            roleBadge.classList.add(`role-${role}`);
+        }
+
+        // 2. LOGOUT LOGIC
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        // 3. ASK AI LOGIC
+        async function ask() {
+            const text = document.getElementById("query").value;
+            const btn = document.getElementById("askBtn");
+            const sqlBox = document.getElementById("sqlContainer");
+            const resultsArea = document.getElementById("resultsArea");
+
+            if (!text.trim()) return;
+
+            // UI Loading State
+            btn.disabled = true;
+            btn.innerText = "Thinking...";
+            resultsArea.innerHTML = '<div class="empty-state">🤖 AI is processing your request...</div>';
+            sqlBox.style.display = "none";
+
+            try {
+                // Fetch Data
+                const res = await fetch("http://127.0.0.1:8000/query", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({text: text})
+                });
+
+                const data = await res.json();
+
+                // Show SQL
+                sqlBox.style.display = "block";
+                document.getElementById("sqlText").innerText = data.generated_sql || "-- No SQL generated";
+
+                // Build Table
+                if (data.results && Array.isArray(data.results) && data.results.length > 0) {
+                    renderTable(data.results);
+                } else if (data.results && data.results.error) {
+                    resultsArea.innerHTML = `<div class="empty-state" style="color:red">❌ ${data.results.error}</div>`;
+                } else {
+                    resultsArea.innerHTML = '<div class="empty-state">No records found.</div>';
+                }
+
+            } catch (e) {
+                resultsArea.innerHTML = `<div class="empty-state" style="color:red">❌ Error: ${e.message}</div>`;
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Ask AI";
+            }
+        }
+
+        // 4. TABLE RENDERER (Converts JSON to HTML)
+        function renderTable(data) {
+            const area = document.getElementById("resultsArea");
+            let table = '<table><thead><tr>';
+            
+            // Get Headers from first object
+            const headers = Object.keys(data[0]);
+            headers.forEach(h => {
+                // Convert "first_name" -> "FIRST NAME"
+                table += `<th>${h.replace(/_/g, ' ')}</th>`;
+            });
+            table += '</tr></thead><tbody>';
+
+            // Rows
+            data.forEach(row => {
+                table += '<tr>';
+                headers.forEach(h => {
+                    table += `<td>${row[h]}</td>`;
+                });
+                table += '</tr>';
+            });
+
+            table += '</tbody></table>';
+            area.innerHTML = table;
+        }
+    </script>
+</body>
+</html>
