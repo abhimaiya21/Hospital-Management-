@@ -1,18 +1,52 @@
-### dotenv ###
+# ===============================
+# Python cache & compiled files
+# ===============================
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# ===============================
+# Virtual Environments
+# ===============================
+venv/
+env/
+.venv/
+
+# ===============================
+# Environment variables (SECRETS)
+# ===============================
 .env
+.env.*
 
-### venv ###
-# Virtualenv
-# http://iamzed.com/2009/05/07/a-primer-on-virtualenv/
-.Python
-[Bb]in
-[Ii]nclude
-[Ll]ib
-[Ll]ib64
-[Ll]ocal
-[Ss]cripts
-pyvenv.cfg
-.venv
-pip-selfcheck.json
+# ===============================
+# Editor / OS files
+# ===============================
+.vscode/
+.DS_Store
+Thumbs.db
 
-# End of https://www.toptal.com/developers/gitignore/api/venv,dotenv
+# ===============================
+# Logs
+# ===============================
+*.log
+
+# ===============================
+# Database & temp files
+# ===============================
+*.sqlite
+*.sqlite3
+*.db
+
+# ===============================
+# Large data files (IMPORTANT)
+# ===============================
+*.json
+*.csv
+
+# ===============================
+# Python build / test
+# ===============================
+.pytest_cache/
+.mypy_cache/
+.coverage
