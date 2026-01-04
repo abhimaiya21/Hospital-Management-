@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Billing Dashboard - MediPortal</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* RESET & BASE */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: #f3f4f6;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            color: #1f2937;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 260px;
+            height: 100vh;
+            background: #1e293b;
+            color: #cbd5e1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 40px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: #60a5fa;
+        }
+
+        .nav-link {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 8px;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .nav-link:hover,
+        .nav-link.active {
+            background: #334155;
+            color: white;
+            transform: translateX(5px);
+        }
+
+        .nav-link i {
+            width: 20px;
+            text-align: center;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            padding: 30px;
+            min-height: 100vh;
+        }
+
+        /* HEADER */
+        .top-bar {
+            background: white;
+            padding: 15px 25px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .page-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .user-profile {
+            font-size: 14px;
+            font-weight: 600;
+            color: #4b5563;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .badge-role {
+            background: #f59e0b;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+
+        /* SECTIONS */
+        .section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+
+        .section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* STATS CARDS */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #ccc;
+        }
+
+        .stat-card h4 {
+            margin: 0 0 5px;
+            font-size: 13px;
+            color: #6b7280;
+            text-transform: uppercase;
+        }
+
+        .stat-card .value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        /* CHARTS */
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .chart-box {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            min-height: 320px;
+        }
+
+        /* INSIGHTS */
+        .insights-box {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        /* AI & TABLES */
+        .search-area {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        button {
+            background: #f59e0b;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        th {
+            background: #f8fafc;
+            padding: 15px;
+            text-align: left;
+            border-bottom: 2px solid #e2e8f0;
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+        }
+
+        td {
+            padding: 15px;
+            border-bottom: 1px solid #f1f5f9;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav class="sidebar">
+        <div class="sidebar-brand"><i class="fa-solid fa-file-invoice-dollar"></i> FinancePortal</div>
+        <a class="nav-link active" onclick="showSection('dashboard', this)"><i class="fa-solid fa-chart-pie"></i>
+            Dashboard</a>
+        <a class="nav-link" onclick="showSection('invoices', this)"><i class="fa-solid fa-file-invoice"></i>
+            Invoices</a>
+        <a class="nav-link" onclick="showSection('ai', this)"><i class="fa-solid fa-robot"></i> AI Assistant</a>
+        <div style="flex-grow:1"></div>
+        <a class="nav-link" onclick="logout()" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Sign
+            Out</a>
+    </nav>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">Billing & Revenue</div>
+            <div class="user-profile">
+                Welcome, <span id="uName">Staff</span>
+                <span class="badge-role">FINANCE</span>
+            </div>
+        </div>
+
+        <!-- DASHBOARD SECTION -->
+        <div id="sec-dashboard" class="section active">
+            <!-- 1. SUMMARY CARDS -->
+            <div class="stats-grid" id="statsGrid">
+                <div class="stat-card">
+                    <h4>Loading...</h4>
+                </div>
+            </div>
+
+            <!-- 2. ANALYTICS CHARTS -->
+            <div class="charts-grid">
+                <div class="chart-box">
+                    <h4>💰 Revenue Trend (7d)</h4>
+                    <canvas id="chartTrend"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h4>📊 Invoice Status</h4>
+                    <canvas id="chartStatus"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h4>🏢 Insurance Analysis</h4>
+                    <canvas id="chartIns"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h4>🕒 Invoice Aging</h4>
+                    <canvas id="chartAging"></canvas>
+                </div>
+            </div>
+
+            <!-- 3. AI SUMMARY -->
+            <div class="insights-box">
+                <h3 style="margin-top:0"><i class="fa-solid fa-robot"></i> Finance Assistant Summary</h3>
+                <div id="aiSummary" style="font-size:16px;">Loading...</div>
+            </div>
+        </div>
+
+        <!-- INVOICES SECTION (Placeholder) -->
+        <div id="sec-invoices" class="section">
+            <div class="chart-box">
+                <h3>Invoice Management</h3>
+                <p>Feature under construction. Use the AI Assistant to find unpaid invoices.</p>
+            </div>
+        </div>
+
+        <!-- AI SECTION -->
+        <div id="sec-ai" class="section">
+            <div class="chart-box">
+                <h3>🤖 AI Finance Assistant</h3>
+                <div id="suggestions" style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;"></div>
+                <div class="search-area">
+                    <input id="query" placeholder="e.g., Show all unpaid invoices...">
+                    <button onclick="askAI()" id="btnAsk">Ask AI</button>
+                </div>
+                <div id="results" style="margin-top:20px; color:#64748b;">Results will appear here...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- AUTH CHECK ---
+        const user = sessionStorage.getItem("hospitalUser");
+        if (sessionStorage.getItem("hospitalRole") !== 'billing') window.location.href = "index.html";
+        document.getElementById("uName").innerText = user || 'Staff';
+
+        // --- INIT ---
+        loadAnalytics();
+        initAI();
+
+        function showSection(id, el) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.getElementById(`sec-${id}`).classList.add('active');
+            document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+            if (el) el.classList.add('active');
+        }
+
+        async function loadAnalytics() {
+            try {
+                const res = await fetch("http://127.0.0.1:8000/billing/analytics");
+                const data = await res.json();
+
+                if (data.error) { console.error(data.error); return; }
+
+                // 1. CARDS
+                document.getElementById("statsGrid").innerHTML = `
+                    <div class="stat-card" style="border-left-color:#3b82f6"><h4>Pending Invoices</h4><div class="value">${data.summary.pending}</div></div>
+                    <div class="stat-card" style="border-left-color:#10b981"><h4>Revenue Today</h4><div class="value">$${data.summary.revenue_today}</div></div>
+                    <div class="stat-card" style="border-left-color:#ef4444"><h4>Overdue Payments</h4><div class="value">${data.summary.overdue}</div></div>
+                    <div class="stat-card" style="border-left-color:#f59e0b"><h4>Avg Payment Delay</h4><div class="value">${data.summary.delay} days</div></div>
+                `;
+
+                // 2. CHARTS
+                renderChart('chartTrend', 'line', data.trend.labels, [{ label: 'Revenue ($)', data: data.trend.data, borderColor: '#10b981', tension: 0.3 }]);
+                renderChart('chartStatus', 'doughnut', Object.keys(data.status), [{ data: Object.values(data.status), backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]);
+                renderChart('chartIns', 'bar', Object.keys(data.insurance), [{ label: 'Claims', data: Object.values(data.insurance), backgroundColor: '#3b82f6' }], { indexAxis: 'y' });
+                renderChart('chartAging', 'bar', Object.keys(data.aging), [{ label: 'Invoices', data: Object.values(data.aging), backgroundColor: ['#f59e0b', '#ef4444', '#64748b'] }]);
+
+                // 3. AI SUMMARY
+                document.getElementById("aiSummary").innerHTML = `Finance staff used AI <b>${data.ai.count}</b> times today. Most requested: "<i>${data.ai.top_query}</i>"`;
+
+            } catch (e) { console.error("Load failed", e); }
+        }
+
+        let chartInstances = {};
+        function renderChart(id, type, labels, datasets, options = {}) {
+            if (chartInstances[id]) chartInstances[id].destroy();
+            chartInstances[id] = new Chart(document.getElementById(id), { type, data: { labels, datasets }, options });
+        }
+
+        // --- AI LOGIC ---
+        function initAI() {
+            const queries = ["Show all unpaid invoices", "List invoices greater than 10000", "Show total pending revenue"];
+            document.getElementById("suggestions").innerHTML = queries.map(q => `<span style="background:#e2e8f0; padding:6px 12px; border-radius:20px; cursor:pointer; font-size:13px; color:#475569;" onclick="document.getElementById('query').value='${q}'">💡 ${q}</span>`).join('');
+        }
+
+        async function askAI() {
+            const btn = document.getElementById("btnAsk");
+            const text = document.getElementById("query").value;
+            const resultsDiv = document.getElementById("results");
+
+            if (!text) return;
+
+            btn.innerText = "Generating...";
+            try {
+                const res = await fetch("http://127.0.0.1:8000/billing/query", {
+                    method: "POST", headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text, username: user, role: 'billing', mode: 'generate' })
+                });
+                const data = await res.json();
+
+                if (data.generated_sql) {
+                    // Show SQL for Review
+                    resultsDiv.innerHTML = `
+                        <div style="background:#f0f9ff; padding:15px; border-radius:8px; border:1px solid #bae6fd; margin-bottom:15px;">
+                            <label style="display:block; font-size:12px; color:#0284c7; margin-bottom:5px; font-weight:bold;">GENERATED SQL (Review & Edit):</label>
+                            <textarea id="generatedSql" style="width:100%; height:60px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-family:monospace;">${data.generated_sql}</textarea>
+                            <div style="margin-top:10px; text-align:right;">
+                                <button onclick="executeSQL()" style="background:#10b981; color:white; border:none; padding:8px 20px; border-radius:6px; font-weight:bold; cursor:pointer;">Run Query</button>
+                            </div>
+                        </div>
+                    `;
+                    btn.innerText = "Re-Generate";
+                } else {
+                    resultsDiv.innerText = "AI could not generate a query.";
+                    btn.innerText = "Ask AI";
+                }
+            } catch (e) { console.error(e); resultsDiv.innerText = "Error contacting server."; btn.innerText = "Ask AI"; }
+        }
+
+        async function executeSQL() {
+            const sql = document.getElementById("generatedSql").value;
+            const resultsDiv = document.getElementById("results");
+
+            resultsDiv.innerHTML = `
+                <div style="background:#f0f9ff; padding:15px; border-radius:8px; border:1px solid #bae6fd; margin-bottom:15px;">
+                     <p style="color:#0284c7; font-weight:bold;">Running Query...</p>
+                </div>
+            `;
+
+            try {
+                const execRes = await fetch("http://127.0.0.1:8000/billing/query", {
+                    method: "POST", headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ sql: sql, username: user, role: 'billing', mode: 'execute' })
+                });
+                const results = await execRes.json();
+
+                if (results.results) {
+                    if (results.results.length === 0) {
+                        resultsDiv.innerHTML = "<p style='color:#ef4444; font-weight:bold;'>No records found matching that query.</p>";
+                    } else {
+                        // Render Table
+                        let html = "<div style='overflow-x:auto;'><table><thead><tr>" + Object.keys(results.results[0]).map(k => `<th>${k}</th>`).join('') + "</tr></thead><tbody>";
+                        html += results.results.map(r => "<tr>" + Object.values(r).map(v => `<td>${v}</td>`).join('') + "</tr>").join('');
+                        resultsDiv.innerHTML = html + "</tbody></table></div>";
+                    }
+                } else {
+                    resultsDiv.innerHTML = `<p style='color:red'>Error: ${results.error || "No data"}</p>`;
+                }
+            } catch (e) { console.error(e); resultsDiv.innerHTML = "<p>Execution Error.</p>"; }
+        }
+
+        function logout() { sessionStorage.clear(); window.location.href = "index.html"; }
+    </script>
+</body>
+
+</html>

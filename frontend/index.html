@@ -5,15 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediPortal - Secure Login</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: #f0f2f5;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -22,65 +18,52 @@
             overflow: hidden;
         }
 
-        /* Floating particles effect */
-        .floating-particle {
-            position: fixed;
-            width: 100px;
-            height: 100px;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            pointer-events: none;
-            animation: float 15s infinite ease-in-out;
+        .sidebar-accent {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 300px;
+            background: #1e293b;
+            z-index: 0;
+            clip-path: polygon(0 0, 100% 0, 85% 100%, 0% 100%);
         }
 
-        @keyframes float {
-            0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
-            25% { transform: translateY(-30px) translateX(20px) rotate(90deg); }
-            50% { transform: translateY(-60px) translateX(-20px) rotate(180deg); }
-            75% { transform: translateY(-30px) translateX(20px) rotate(270deg); }
-        }
-
-        /* LOGIN CONTAINER */
         .login-container {
             background: white;
             padding: 50px 45px;
             border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
             width: 100%;
-            max-width: 420px;
+            max-width: 480px;
             animation: slideUp 0.5s ease;
             position: relative;
             z-index: 10;
+            border-top: 5px solid #3b82f6;
         }
 
         @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .logo-circle {
             width: 80px;
             height: 80px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #1e293b 0%, #3b82f6 100%);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 40px;
             margin: 0 auto 25px;
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
             animation: pulse-glow 2s ease-in-out infinite;
         }
 
         @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4); }
-            50% { box-shadow: 0 10px 40px rgba(102, 126, 234, 0.7); }
+            0%, 100% { box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); }
+            50% { box-shadow: 0 10px 40px rgba(59, 130, 246, 0.6); }
         }
 
         .login-container h2 {
@@ -98,13 +81,12 @@
             margin-bottom: 35px;
         }
 
-        /* ROLE SELECTOR */
         .role-selector-container {
             margin-bottom: 35px;
             padding: 20px;
-            background: linear-gradient(135deg, #f0f4ff 0%, #f5f1ff 100%);
+            background: #f8fafc;
             border-radius: 12px;
-            border: 2px solid #e2e8f0;
+            border: 1px solid #e2e8f0;
         }
 
         .role-selector-label {
@@ -120,240 +102,75 @@
         .role-buttons {
             display: flex;
             gap: 10px;
-            position: relative;
+            justify-content: space-between;
         }
 
         .role-btn {
             flex: 1;
-            padding: 12px 16px;
-            border: 2px solid #cbd5e1;
+            padding: 12px 5px;
+            border: 1px solid #cbd5e1;
             background: white;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            transition: all 0.2s;
             position: relative;
             color: #64748b;
-            overflow: hidden;
-        }
-
-        .role-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
-            transition: left 0.5s;
+            text-align: center;
         }
 
         .role-btn:hover {
-            border-color: #667eea;
+            border-color: #3b82f6;
+            color: #3b82f6;
             transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(102, 126, 234, 0.2);
         }
 
         .role-btn.active {
-            border-color: #667eea;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #3b82f6;
+            background: #3b82f6;
             color: white;
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-            transform: translateY(-3px) scale(1.02);
-        }
-
-        .role-btn.active::before {
-            left: 100%;
-        }
-
-        .role-indicator {
-            position: absolute;
-            bottom: -3px;
-            height: 3px;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            border-radius: 2px;
-            transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-
-        .input-group {
-            margin-bottom: 25px;
-        }
-
-        .input-group label {
-            display: block;
-            color: #334155;
-            font-weight: 600;
-            margin-bottom: 8px;
-            font-size: 14px;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 14px 16px;
-            border: 2px solid #e2e8f0;
-            border-radius: 10px;
-            font-size: 15px;
-            transition: all 0.3s;
-            outline: none;
-        }
-
-        .input-group input:focus {
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
             transform: translateY(-2px);
         }
 
+        .input-group { margin-bottom: 25px; }
+        .input-group label { display: block; color: #334155; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
+        .input-group input { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.3s; outline: none; }
+        .input-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); transform: translateY(-2px); }
+
         #loginBtn {
-            width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
-            position: relative;
-            overflow: hidden;
+            width: 100%; padding: 15px; 
+            background: #1e293b;
+            color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; position: relative; overflow: hidden;
         }
-
-        #loginBtn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.2);
-            transition: left 0.6s;
-        }
-
-        #loginBtn:hover::before {
-            left: 100%;
-        }
-
-        #loginBtn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.4);
-        }
-
-        #loginBtn:active {
-            transform: translateY(-1px);
-        }
-
-        #loginBtn:disabled {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
+        #loginBtn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(30, 41, 59, 0.3); background: #0f172a; }
+        #loginBtn:disabled { cursor: not-allowed; opacity: 0.7; }
 
         .error-banner {
-            display: none;
-            background: #fee2e2;
-            color: #dc2626;
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin-top: 20px;
-            font-size: 14px;
-            font-weight: 600;
-            text-align: center;
-            animation: shake 0.5s, slideDown 0.4s ease;
-            border-left: 4px solid #dc2626;
+            display: none; background: #fee2e2; color: #dc2626; padding: 12px 16px; border-radius: 8px; margin-top: 20px; font-size: 14px; font-weight: 600; text-align: center; border-left: 4px solid #dc2626;
         }
 
-        @keyframes shake {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-10px); }
-            75% { transform: translateX(10px); }
-        }
-
-        @keyframes slideDown {
-            from { opacity: 0; transform: translateY(-20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .system-status {
-            margin-top: 30px;
-            text-align: center;
-            font-size: 13px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #cbd5e1;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .success-checkmark {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: #22c55e;
-            color: white;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-right: 4px;
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 35px 25px;
-                margin: 20px;
-            }
-
-            .role-buttons {
-                flex-direction: column;
-                gap: 8px;
-            }
-
-            .role-btn {
-                padding: 14px;
-                font-size: 13px;
-            }
-        }
+        .system-status { margin-top: 30px; text-align: center; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
-    <!-- Floating particles -->
-    <div class="floating-particle" style="top: 10%; left: 10%; animation-delay: 0s;"></div>
-    <div class="floating-particle" style="top: 60%; right: 10%; animation-delay: 2s;"></div>
-    <div class="floating-particle" style="bottom: 10%; left: 20%; animation-delay: 4s;"></div>
+    <div class="sidebar-accent"></div>
 
     <div class="login-container">
         <div class="logo-circle">🏥</div>
-        
         <h2>MediPortal</h2>
-        <p class="subtitle">Role-Based Access Control System</p>
+        <p class="subtitle">Secure Hospital Access</p>
 
-        <!-- Role Selector -->
         <div class="role-selector-container">
             <label class="role-selector-label">Select Your Role</label>
             <div class="role-buttons">
-                <button class="role-btn active" data-role="doctor" onclick="selectRole('doctor', this)">
-                    👨‍⚕️ Doctor
-                </button>
-                <button class="role-btn" data-role="nurse" onclick="selectRole('nurse', this)">
-                    👩‍⚕️ Nurse
-                </button>
-                <button class="role-btn" data-role="billing" onclick="selectRole('billing', this)">
-                    💼 Billing
-                </button>
+                <button class="role-btn active" onclick="selectRole('doctor', this)">👨‍⚕️ Doctor</button>
+                <button class="role-btn" onclick="selectRole('nurse', this)">👩‍⚕️ Nurse</button>
+                <button class="role-btn" onclick="selectRole('billing', this)">💼 Billing</button>
+                <button class="role-btn" onclick="selectRole('admin', this)">🛡️ Admin</button>
             </div>
         </div>
 
@@ -368,58 +185,38 @@
         </div>
 
         <button id="loginBtn" onclick="handleLogin()">Sign In</button>
-        
-        <div id="errorMsg" class="error-banner">❌ Invalid credentials. Please try again.</div>
+        <div id="errorMsg" class="error-banner"></div>
 
         <div class="system-status">
             <span id="statusDot" class="status-dot"></span>
-            <span id="statusText" style="color: #64748b;">Checking system status...</span>
+            <span id="statusText" style="color: #64748b;">System Check...</span>
         </div>
     </div>
 
     <script>
         let selectedRole = 'doctor';
 
-        // Select role function
         function selectRole(role, element) {
             selectedRole = role;
-            
-            // Remove active class from all buttons
-            document.querySelectorAll('.role-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            
-            // Add active class to clicked button
+            document.querySelectorAll('.role-btn').forEach(btn => btn.classList.remove('active'));
             element.classList.add('active');
         }
 
-        // System health check
         window.onload = async function() {
             const dot = document.getElementById("statusDot");
             const text = document.getElementById("statusText");
-            
             try {
-                const response = await fetch("http://127.0.0.1:8000/query", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ text: "Ping" })
+                // Check if the main backend is alive
+                const response = await fetch("http://127.0.0.1:8000/", {
+                    method: "GET"
                 });
-                
-                if (response.ok) {
-                    dot.style.backgroundColor = "#22c55e";
-                    text.innerText = "✓ Backend Online";
-                    text.style.color = "#15803d";
-                } else {
-                    throw new Error("Backend unavailable");
-                }
-            } catch (error) {
-                dot.style.backgroundColor = "#ef4444";
-                text.innerText = "✗ Backend Offline";
-                text.style.color = "#b91c1c";
+                if (response.ok) { dot.style.backgroundColor = "#22c55e"; text.innerText = "✓ System Online"; text.style.color = "#15803d"; }
+                else throw new Error();
+            } catch {
+                dot.style.backgroundColor = "#ef4444"; text.innerText = "✗ Backend Offline"; text.style.color = "#b91c1c";
             }
         };
 
-        // Handle login
         async function handleLogin() {
             const username = document.getElementById("username").value.trim();
             const password = document.getElementById("password").value;
@@ -428,17 +225,18 @@
 
             if (!username || !password) {
                 errorBanner.style.display = "block";
-                errorBanner.textContent = "⚠️ Please enter both username and password";
+                errorBanner.textContent = "⚠️ Please enter credentials";
                 return;
             }
 
             errorBanner.style.display = "none";
-            btn.innerText = "Authenticating...";
+            btn.innerText = "Verifying...";
             btn.disabled = true;
 
             try {
+                // Request hits main.py which routes it to the correct handler
                 const response = await fetch("http://127.0.0.1:8000/login", {
-                    method: "POST",
+                    method: "POST", 
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, password, role: selectedRole })
                 });
@@ -446,32 +244,35 @@
                 if (response.ok) {
                     const data = await response.json();
                     
+                    // Persist session
                     sessionStorage.setItem("hospitalUser", data.username);
-                    sessionStorage.setItem("hospitalRole", selectedRole);
+                    sessionStorage.setItem("hospitalRole", data.role); 
                     
                     btn.innerText = "✓ Access Granted";
-                    btn.style.background = "linear-gradient(135deg, #22c55e 0%, #16a34a 100%)";
+                    btn.style.background = "#22c55e";
                     
+                    // REDIRECTION LOGIC FOR SEPARATE DASHBOARDS
                     setTimeout(() => {
-                        window.location.href = "dashboard.html";
+                        if (data.role === 'admin') window.location.href = "admin.html";
+                        else if (data.role === 'doctor') window.location.href = "doctor.html";
+                        else if (data.role === 'nurse') window.location.href = "nurse.html";
+                        else if (data.role === 'billing') window.location.href = "billing.html";
+                        else window.location.href = "index.html"; 
                     }, 800);
-                } else {
-                    throw new Error("Authentication failed");
+
+                } else { 
+                    throw new Error("Unauthorized"); 
                 }
-            } catch (error) {
+            } catch {
                 errorBanner.style.display = "block";
-                errorBanner.textContent = "❌ Invalid credentials. Please try again.";
+                errorBanner.textContent = `❌ Access Denied: Invalid ${selectedRole.toUpperCase()} credentials`;
                 btn.innerText = "Sign In";
                 btn.disabled = false;
+                btn.style.background = "#1e293b";
             }
         }
 
-        // Allow Enter key to submit
-        document.addEventListener("keypress", function(event) {
-            if (event.key === "Enter") {
-                handleLogin();
-            }
-        });
+        document.addEventListener("keypress", function(e) { if (e.key === "Enter") handleLogin(); });
     </script>
 </body>
 </html>
