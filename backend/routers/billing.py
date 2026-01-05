@@ -55,8 +55,12 @@ def get_billing_analytics():
         # Assuming table 'invoices' has columns: invoice_id, amount, status, issue_date (timestamp/date)
         pending_invoices = execute_query("SELECT COUNT(*) as count FROM invoices WHERE status = 'Pending'")[0]['count']
         revenue_today = execute_query("SELECT COALESCE(SUM(amount), 0) as total FROM invoices WHERE issue_date = CURRENT_DATE AND status = 'Paid'")[0]['total']
-        overdue_payments = execute_query("SELECT COUNT(*) as count FROM invoices WHERE status = 'Overdue'")[0]['count']
-        avg_delay = 5 # Mocked "Avg Payment Delay" in days
+        # Proxy Overdue: Unpaid invoices older than 30 days
+        overdue_payments = execute_query("SELECT COUNT(*) as count FROM invoices WHERE status = 'Unpaid' AND issue_date < CURRENT_DATE - INTERVAL '30 days'")[0]['count']
+        
+        # Calc average delay: simple proxy using age of unpaid invoices
+        avg_delay_res = execute_query("SELECT AVG(CURRENT_DATE - issue_date) as days FROM invoices WHERE status = 'Unpaid'")
+        avg_delay = int(avg_delay_res[0]['days']) if avg_delay_res and avg_delay_res[0]['days'] else 0
 
         # 2. REVENUE TREND (Last 7 Days)
         trend_raw = execute_query("SELECT to_char(issue_date, 'Mon DD') as date, SUM(amount) as total FROM invoices WHERE status = 'Paid' GROUP BY 1 ORDER BY MIN(issue_date) LIMIT 7")
@@ -72,8 +76,21 @@ def get_billing_analytics():
         prov_raw = execute_query("SELECT insurance_provider, COUNT(*) as count FROM patients GROUP BY insurance_provider")
         prov_data = {row['insurance_provider']: row['count'] for row in prov_raw}
 
-        # 5. INVOICE AGING (Mocked based on typically available data)
-        aging_data = {"0-7 Days": 15, "7-30 Days": 8, "30+ Days": 4}
+        # 5. INVOICE AGING (Proxied from issue_date)
+        aging_sql = """
+            SELECT 
+                CASE 
+                    WHEN CURRENT_DATE - issue_date <= 7 THEN '0-7 Days'
+                    WHEN CURRENT_DATE - issue_date <= 30 THEN '7-30 Days'
+                    ELSE '30+ Days'
+                END as age_group,
+                COUNT(*) as count
+            FROM invoices
+            WHERE status != 'Paid'
+            GROUP BY 1
+        """
+        aging_raw = execute_query(aging_sql)
+        aging_data = {row['age_group']: row['count'] for row in aging_raw}
 
         # 6. AI FINANCE QUERIES
         ai_finance = execute_query("SELECT COUNT(*) as count FROM audit_logs WHERE role='billing' AND DATE(timestamp) = CURRENT_DATE")[0]['count']

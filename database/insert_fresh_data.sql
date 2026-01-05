@@ -1,5 +1,12 @@
+
 -- FRESH FAKE DATA GENERATION
 BEGIN;
+
+-- 0. USERS (For Auth)
+-- Default admin is usually created manually, but we ensure doctors have logins
+INSERT INTO users (username, password, role) VALUES ('admin', 'admin123', 'admin');
+INSERT INTO users (username, password, role) VALUES ('dr.smith', 'pass123', 'doctor'); -- Links to Doctor ID 1 potentially depending on logic
+
 
 -- 1. PATIENTS 
 INSERT INTO patients (first_name, last_name, dob, gender, contact_number, address, insurance_provider) VALUES ('Robert', 'Smith', '1975-08-27', 'Other', '(434)796-2516x4', '698 Eddie Stravenue, East Marymouth, AK 60641', 'ICICI Lombard');

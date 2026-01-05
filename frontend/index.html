@@ -1,11 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MediPortal - Secure Login</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -43,8 +48,15 @@
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .logo-circle {
@@ -62,8 +74,15 @@
         }
 
         @keyframes pulse-glow {
-            0%, 100% { box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3); }
-            50% { box-shadow: 0 10px 40px rgba(59, 130, 246, 0.6); }
+
+            0%,
+            100% {
+                box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 10px 40px rgba(59, 130, 246, 0.6);
+            }
         }
 
         .login-container h2 {
@@ -134,33 +153,113 @@
             transform: translateY(-2px);
         }
 
-        .input-group { margin-bottom: 25px; }
-        .input-group label { display: block; color: #334155; font-weight: 600; margin-bottom: 8px; font-size: 14px; }
-        .input-group input { width: 100%; padding: 14px 16px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 15px; transition: all 0.3s; outline: none; }
-        .input-group input:focus { border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1); transform: translateY(-2px); }
+        .input-group {
+            margin-bottom: 25px;
+        }
+
+        .input-group label {
+            display: block;
+            color: #334155;
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 15px;
+            transition: all 0.3s;
+            outline: none;
+        }
+
+        .input-group input:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            transform: translateY(-2px);
+        }
 
         #loginBtn {
-            width: 100%; padding: 15px; 
+            width: 100%;
+            padding: 15px;
             background: #1e293b;
-            color: white; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s; margin-top: 10px; position: relative; overflow: hidden;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            position: relative;
+            overflow: hidden;
         }
-        #loginBtn:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(30, 41, 59, 0.3); background: #0f172a; }
-        #loginBtn:disabled { cursor: not-allowed; opacity: 0.7; }
+
+        #loginBtn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(30, 41, 59, 0.3);
+            background: #0f172a;
+        }
+
+        #loginBtn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
 
         .error-banner {
-            display: none; background: #fee2e2; color: #dc2626; padding: 12px 16px; border-radius: 8px; margin-top: 20px; font-size: 14px; font-weight: 600; text-align: center; border-left: 4px solid #dc2626;
+            display: none;
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            text-align: center;
+            border-left: 4px solid #dc2626;
         }
 
-        .system-status { margin-top: 30px; text-align: center; font-size: 13px; display: flex; align-items: center; justify-content: center; gap: 8px; }
-        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        .system-status {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="sidebar-accent"></div>
 
     <div class="login-container">
-        <div class="logo-circle">🏥</div>
+        <div class="logo-circle" style="background: white; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+            <img src="logo.jpg" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
+        </div>
         <h2>MediPortal</h2>
         <p class="subtitle">Secure Hospital Access</p>
 
@@ -178,7 +277,7 @@
             <label>Username</label>
             <input type="text" id="username" placeholder="Enter your username" autocomplete="off">
         </div>
-        
+
         <div class="input-group">
             <label>Password</label>
             <input type="password" id="password" placeholder="Enter your password">
@@ -202,7 +301,7 @@
             element.classList.add('active');
         }
 
-        window.onload = async function() {
+        window.onload = async function () {
             const dot = document.getElementById("statusDot");
             const text = document.getElementById("statusText");
             try {
@@ -236,32 +335,32 @@
             try {
                 // Request hits main.py which routes it to the correct handler
                 const response = await fetch("http://127.0.0.1:8000/login", {
-                    method: "POST", 
+                    method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ username, password, role: selectedRole })
                 });
 
                 if (response.ok) {
                     const data = await response.json();
-                    
+
                     // Persist session
                     sessionStorage.setItem("hospitalUser", data.username);
-                    sessionStorage.setItem("hospitalRole", data.role); 
-                    
+                    sessionStorage.setItem("hospitalRole", data.role);
+
                     btn.innerText = "✓ Access Granted";
                     btn.style.background = "#22c55e";
-                    
+
                     // REDIRECTION LOGIC FOR SEPARATE DASHBOARDS
                     setTimeout(() => {
                         if (data.role === 'admin') window.location.href = "admin.html";
                         else if (data.role === 'doctor') window.location.href = "doctor.html";
                         else if (data.role === 'nurse') window.location.href = "nurse.html";
                         else if (data.role === 'billing') window.location.href = "billing.html";
-                        else window.location.href = "index.html"; 
+                        else window.location.href = "index.html";
                     }, 800);
 
-                } else { 
-                    throw new Error("Unauthorized"); 
+                } else {
+                    throw new Error("Unauthorized");
                 }
             } catch {
                 errorBanner.style.display = "block";
@@ -272,7 +371,8 @@
             }
         }
 
-        document.addEventListener("keypress", function(e) { if (e.key === "Enter") handleLogin(); });
+        document.addEventListener("keypress", function (e) { if (e.key === "Enter") handleLogin(); });
     </script>
 </body>
+
 </html>

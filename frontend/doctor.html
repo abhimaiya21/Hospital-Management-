@@ -46,6 +46,11 @@
             color: #60a5fa;
         }
 
+        .sidebar-brand img {
+            height: 40px;
+            border-radius: 5px;
+        }
+
         .nav-link {
             padding: 12px 15px;
             margin-bottom: 8px;
@@ -247,7 +252,10 @@
 <body>
 
     <nav class="sidebar">
-        <div class="sidebar-brand"><i class="fa-solid fa-user-doctor"></i> DoctorPortal</div>
+        <div class="sidebar-brand">
+            <img src="logo.jpg" alt="RVCE Logo">
+            DoctorPortal
+        </div>
         <a class="nav-link active" onclick="showSection('dashboard', this)"><i class="fa-solid fa-chart-line"></i>
             Dashboard</a>
         <a class="nav-link" onclick="showSection('patients', this)"><i class="fa-solid fa-bed-pulse"></i> My

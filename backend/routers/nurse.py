@@ -56,18 +56,33 @@ async def nurse_query(request: QueryRequest):
 def get_nurse_analytics():
     try:
         # 1. SUMMARY CARDS
-        occupied_beds = execute_query("SELECT COUNT(DISTINCT room_number) as count FROM appointments")[0]['count']
-        pending_vitals = 12 # Mocked
+        occupied_beds = execute_query("SELECT COUNT(DISTINCT room_number) as count FROM appointments WHERE status != 'Completed' AND room_number IS NOT NULL")[0]['count']
+        # Proxy: Patients with appointment today but no medical record today = Pending Vitals/Checks
+        pending_vitals = execute_query("""
+            SELECT COUNT(*) as count 
+            FROM appointments a 
+            WHERE a.appointment_date::date = CURRENT_DATE 
+            AND a.status = 'Scheduled'
+            AND NOT EXISTS (
+                SELECT 1 FROM medical_records m 
+                WHERE m.patient_id = a.patient_id 
+                AND m.record_date = CURRENT_DATE
+            )
+        """)[0]['count']
         docs_on_duty = execute_query("SELECT COUNT(*) as count FROM doctors")[0]['count'] 
-        alerts_today = execute_query("SELECT COUNT(*) as count FROM allergies WHERE severity IN ('High', 'Severe')")[0]['count']
+        alerts_today = execute_query("SELECT COUNT(*) as count FROM allergies WHERE severity IN ('High', 'Severe', 'Life-Threatening')")[0]['count']
 
-        # 2. BED OCCUPANCY TREND (Last 7 Days - Mocked Variation)
-        # In a real app, this would query a bed_occupancy_history table
-        trend_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-        trend_values = [45, 48, 50, 47, 52, 55, occupied_beds]
+        # 2. BED OCCUPANCY TREND (Last 7 Days - Using Appointment count as proxy)
+        trend_raw = execute_query("SELECT to_char(appointment_date, 'Mon DD') as date, COUNT(*) as count FROM appointments WHERE appointment_date >= CURRENT_DATE - INTERVAL '7 days' GROUP BY 1 ORDER BY MIN(appointment_date)")
+        trend_labels = [row['date'] for row in trend_raw]
+        trend_values = [row['count'] for row in trend_raw]
 
-        # 3. VITALS COLLECTION STATUS (Mocked)
-        vitals_data = {"Completed": 70, "Pending": 20, "Missed": 10}
+        # 3. VITALS COLLECTION STATUS (Proxy based on today's appointments status)
+        vitals_data = {
+            "Completed": execute_query("SELECT COUNT(*) as count FROM appointments WHERE appointment_date::date = CURRENT_DATE AND status = 'Completed'")[0]['count'],
+            "Pending": pending_vitals,
+            "Missed": execute_query("SELECT COUNT(*) as count FROM appointments WHERE appointment_date::date = CURRENT_DATE AND status = 'Cancelled'")[0]['count']
+        }
 
         # 4. ALERTS BY TYPE
         alerts_raw = execute_query("SELECT severity, COUNT(*) as count FROM allergies GROUP BY severity")

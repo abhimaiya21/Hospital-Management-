@@ -52,9 +52,14 @@ def get_analytics():
         roles_raw = execute_query("SELECT role, COUNT(*) as count FROM users GROUP BY role")
         roles_data = {row['role']: row['count'] for row in roles_raw}
 
-        # 3. DEPARTMENT LOAD
-        dept_raw = execute_query("SELECT specialty, COUNT(*) as count FROM doctors GROUP BY specialty")
-        dept_data = {row['specialty']: row['count'] for row in dept_raw}
+        # 3. DEPARTMENT LOAD (Fix: Handle comma-separated specialties)
+        # unnest(string_to_array(specialty, ',')) splits the string and creates a row for each item
+        dept_raw = execute_query("""
+            SELECT TRIM(s) as spec, COUNT(*) as count 
+            FROM doctors, unnest(string_to_array(specialty, ',')) as s 
+            GROUP BY spec
+        """)
+        dept_data = {row['spec']: row['count'] for row in dept_raw}
 
         # 4. SYSTEM USAGE
         usage_raw = execute_query("SELECT role, COUNT(*) as count FROM audit_logs GROUP BY role")
@@ -94,10 +99,26 @@ def get_doctors(): return execute_query("SELECT * FROM doctors ORDER BY doctor_i
 
 @router.post("/doctors")
 def add_doctor(doc: DoctorModel):
+    # 1. Insert into Doctors table
     sql = f"INSERT INTO doctors (first_name, last_name, specialty, email, phone_contact) VALUES ('{doc.first_name}', '{doc.last_name}', '{doc.specialty}', '{doc.email}', '{doc.phone_contact}')"
     execute_query(sql)
+    
+    # 2. Create User Account (Generating a default username/password)
+    # Pattern: first letter of firstname + lastname (lowercase)
+    username = f"{doc.first_name[0].lower()}.{doc.last_name.lower()}"
+    password = "password123" # Default password
+    
+    # Check if username exists, append random if needed (simple logic handled by catching error or just naive insert)
+    # For now, naive insert. In prod, check unique.
+    try:
+        user_sql = f"INSERT INTO users (username, password, role) VALUES ('{username}', '{password}', 'doctor')"
+        execute_query(user_sql)
+        msg = f"Doctor added. Login: {username} / {password}"
+    except Exception:
+        msg = "Doctor added, but user account creation failed (username might exist)."
+
     log_audit("admin", "admin", f"Added Doctor: {doc.last_name}", "SUCCESS")
-    return {"message": "Doctor added"}
+    return {"message": msg}
 
 @router.put("/doctors/{id}")
 def update_doctor(id: int, doc: DoctorModel):
