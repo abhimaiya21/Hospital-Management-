@@ -34,6 +34,8 @@ def execute_query(sql_query: str):
                 results = [{"status": "success", "message": "Operation completed."}]
                 
     except Exception as e:
+        import traceback
+        traceback.print_exc()
         return {"error": str(e)}
         
     finally:

@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Patient Intake - MediPortal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Reusing Doctor Dashboard CSS for consistency */
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --bg: #f8fafc;
+            --sidebar-bg: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            display: flex;
+            flex-direction: row;
+            /* Ensure row direction */
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* SIDEBAR */
+        .sidebar {
+            width: 260px;
+            min-width: 260px;
+            /* Prevent shrinking */
+            background: var(--sidebar-bg);
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+            height: 100vh;
+        }
+
+        .sidebar-brand {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            font-weight: 700;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.1rem;
+        }
+
+        .nav-link {
+            padding: 14px 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            display: flex;
+            gap: 12px;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .nav-link.active {
+            background: rgba(59, 130, 246, 0.1);
+            color: #60a5fa;
+            border-left-color: #60a5fa;
+        }
+
+        .nav-link:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        /* MAIN */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 0;
+            /* Prevent flex blowout */
+        }
+
+        .top-bar {
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+            background: var(--bg);
+        }
+
+        /* INTAKE CARD */
+        .intake-card {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
+
+        textarea {
+            width: 100%;
+            height: 120px;
+            padding: 15px;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Inter';
+            font-size: 1rem;
+            resize: none;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn-submit {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn-submit:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-submit:disabled {
+            opacity: 0.7;
+            cursor: wait;
+        }
+
+        /* RESULTS GRID */
+        .results-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 30px;
+            border-top: 1px solid var(--border);
+            padding-top: 30px;
+        }
+
+        .result-box {
+            background: #f1f5f9;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .result-val {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .badge {
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+
+        .badge-emergency {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-high {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .badge-medium {
+            background: #fef9c3;
+            color: #854d0e;
+        }
+
+        .badge-low {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .explanation {
+            grid-column: 1 / -1;
+            background: #eff6ff;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            color: #1e40af;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-hospital-user" style="margin-right:10px;"></i> MediPortal Patient
+        </div>
+        <a class="nav-link active"><i class="fa-solid fa-file-medical"></i> Intake Form</a>
+        <a class="nav-link"><i class="fa-solid fa-user-clock"></i> Appointments</a>
+        <a class="nav-link"><i class="fa-solid fa-file-invoice"></i> My Bills</a>
+        <div style="flex-grow:1"></div>
+        <a class="nav-link" href="index.html" style="color:#ef4444;"><i
+                class="fa-solid fa-arrow-right-from-bracket"></i> Exit Portal</a>
+    </nav>
+
+    <!-- CONTENT -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">New Patient Intake</div>
+            <div style="font-weight:500; color:var(--text-muted);">Guest User</div>
+        </div>
+
+        <div class="scroll-area">
+            <div class="intake-card">
+                <h2 style="margin-top:0;">Describe Your Condition</h2>
+                <p style="color:var(--text-muted);">Please provide details about your symptoms in your own words. Our AI
+                    will assess your needs.</p>
+
+                <textarea id="symptoms"
+                    placeholder="Example: I have severe stomach pain on the right side and feel nauseous..."></textarea>
+
+                <button class="btn-submit" onclick="analyze()">
+                    <i class="fa-solid fa-stethoscope"></i> Analyze & Assign
+                </button>
+
+                <div id="resultsArea" style="display:none;">
+                    <div class="results-grid">
+                        <div class="result-box">
+                            <div class="result-label">Predicted Specialization</div>
+                            <div class="result-val" id="resSpec">--</div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Severity Level</div>
+                            <div class="result-val"><span id="resSev" class="badge">--</span></div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Assigned Doctor</div>
+                            <div class="result-val" id="resDoc">--</div>
+                        </div>
+                        <div class="result-box">
+                            <div class="result-label">Room Allocation</div>
+                            <div class="result-val" id="resRoom">--</div>
+                        </div>
+                        <div class="explanation" id="resExp"></div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        async function analyze() {
+            const text = document.getElementById('symptoms').value;
+            if (text.length < 5) { alert("Please enter more details."); return; }
+
+            const btn = document.querySelector('.btn-submit');
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch('http://127.0.0.1:8000/patient/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text })
+                });
+                const data = await res.json();
+
+                if (data.error) throw new Error(data.error);
+
+                const an = data.analysis;
+
+                document.getElementById('resultsArea').style.display = 'block';
+                document.getElementById('resSpec').innerText = `${an.specialization} (${an.confidence}%)`;
+
+                const sevBadge = document.getElementById('resSev');
+                sevBadge.className = `badge badge-${an.severity.toLowerCase()}`;
+                sevBadge.innerText = an.severity;
+
+                const docEl = document.getElementById('resDoc');
+                docEl.innerText = an.doctor;
+                docEl.style.color = an.doctor_status === 'Unavailable' ? '#ef4444' : '#166534';
+
+                document.getElementById('resRoom').innerText = an.room;
+
+                document.getElementById('resExp').innerHTML = `<strong>Explainable AI Decision:</strong><br>${an.explanation}`;
+
+            } catch (e) {
+                alert("Error: " + e.message);
+            } finally {
+                btn.innerHTML = '<i class="fa-solid fa-stethoscope"></i> Analyze & Assign';
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+
+</html>

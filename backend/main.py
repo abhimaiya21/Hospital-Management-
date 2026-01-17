@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 
 # Import the split router modules from your backend.routers package
-from backend.routers import admin, doctor, nurse, billing
+from backend.routers import admin, doctor, billing, patient
 
 # Load environment variables from .env file
 load_dotenv()
@@ -32,8 +32,8 @@ app.add_middleware(
 # Note: You can add prefixes like prefix="/admin" if you want to group them.
 app.include_router(admin.router)
 app.include_router(doctor.router)
-app.include_router(nurse.router)
 app.include_router(billing.router)
+app.include_router(patient.router)
 
 # --- 3. HEALTH CHECK ROOT ENDPOINT ---
 @app.get("/")
@@ -44,11 +44,11 @@ def health_check():
     return {
         "status": "MediPortal Backend is Online",
         "modular_mode": True,
-        "active_routers": ["admin", "doctor", "nurse", "billing"]
+        "active_routers": ["admin", "doctor", "billing", "patient"]
     }
 
 # --- 4. START SERVER ---
 if __name__ == "__main__":
     # Runs the server on localhost:8000
     # Command to run manually: uvicorn backend.main:app --reload
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run(app, host="127.0.0.1", port=8000)

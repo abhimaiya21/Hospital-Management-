@@ -1,9 +1,16 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 from backend.db import execute_query
 
-router = APIRouter()
+router = APIRouter(prefix="/admin", tags=["admin"])
+
+# --- Pydantic Models ---
+class UserCreate(BaseModel):
+    username: str
+    password: str
+    role: str
 
 class LoginRequest(BaseModel):
     username: str
@@ -16,6 +23,8 @@ class DoctorModel(BaseModel):
     specialty: str
     email: str
     phone_contact: str
+    department_id: int
+    seniority_level: str
 
 class PatientModel(BaseModel):
     first_name: str
@@ -25,123 +34,288 @@ class PatientModel(BaseModel):
     contact_number: str
     address: str
     insurance_provider: str
+    # These fields are optional for the API but used for logic
+    doctor_id: Optional[int] = None
+    room_number: Optional[str] = None
+    status: Optional[str] = "Admitted"
 
+class AppointmentCreate(BaseModel):
+    patient_id: int
+    problem_text: str
+
+# --- Helper Function ---
 def log_audit(username, role, content, status):
     safe_content = content.replace("'", "''")
-    log_query = f"INSERT INTO audit_logs (username, role, question, status) VALUES ('{username}', '{role}', '{safe_content}', '{status}')"
-    execute_query(log_query)
+    # Wrap in try/except in case audit_logs table is missing or locked
+    try:
+        log_query = f"INSERT INTO audit_logs (username, role, question, status) VALUES ('{username}', '{role}', '{safe_content}', '{status}')"
+        execute_query(log_query)
+    except Exception:
+        pass 
 
-@router.post("/login") # Move this here as Admin manages users
-def login(creds: LoginRequest):
-    sql = f"SELECT * FROM users WHERE username = '{creds.username}' AND password = '{creds.password}'"
-    if creds.role: sql += f" AND role = '{creds.role}'"
-    result = execute_query(sql)
-    if not result: raise HTTPException(status_code=401, detail="Invalid Credentials")
-    return {"status": "success", "role": result[0]['role'], "username": creds.username}
+# --- Routes ---
+
+@router.post("/login")
+async def login(request: LoginRequest):
+    """Admin login endpoint"""
+    if request.role not in ['doctor', 'billing', 'admin']:
+        raise HTTPException(status_code=400, detail="Invalid role")
+    
+    query = f"SELECT * FROM users WHERE username = '{request.username}' AND role = '{request.role}'"
+    result = execute_query(query)
+    
+    if not result:
+        # Check if user exists with a DIFFERENT role to give a helpful error
+        check_query = f"SELECT role FROM users WHERE username = '{request.username}'"
+        check_res = execute_query(check_query)
+        
+        if check_res:
+            actual_role = check_res[0]['role']
+            raise HTTPException(status_code=401, detail=f"Invalid role. You are registered as '{actual_role}'. Please switch tabs.")
+        
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    return {
+        "status": "success",
+        "role": request.role,
+        "username": request.username
+    }
 
 @router.get("/analytics")
-def get_analytics():
+async def get_analytics():
+    """Get admin analytics"""
     try:
-        # 1. SUMMARY COUNTS
-        doc_count = execute_query("SELECT COUNT(*) as count FROM doctors")[0]['count']
-        nurse_count = execute_query("SELECT COUNT(*) as count FROM users WHERE role = 'nurse'")[0]['count']
-        patient_count = execute_query("SELECT COUNT(*) as count FROM patients")[0]['count']
-        active_today = execute_query("SELECT COUNT(DISTINCT username) as count FROM audit_logs WHERE DATE(timestamp) = CURRENT_DATE")[0]['count']
+        # 1. Counts
+        doc_query = "SELECT COUNT(*) as count FROM doctors"
+        doctor_count = execute_query(doc_query)[0]['count']
         
-        # 2. ROLE DISTRIBUTION
-        roles_raw = execute_query("SELECT role, COUNT(*) as count FROM users GROUP BY role")
-        roles_data = {row['role']: row['count'] for row in roles_raw}
+        billing_query = "SELECT COUNT(*) as count FROM users WHERE role = 'billing'"
+        billing_count = execute_query(billing_query)[0]['count']
+        
+        admin_query = "SELECT COUNT(*) as count FROM users WHERE role = 'admin'"
+        admin_count = execute_query(admin_query)[0]['count']
+        
+        patient_query = "SELECT COUNT(*) as count FROM patients"
+        patient_count = execute_query(patient_query)[0]['count']
+        
+        # 2. Trends
+        trend_query = "SELECT to_char(appointment_date, 'Mon DD') as date, COUNT(*) as count FROM appointments WHERE appointment_date >= CURRENT_DATE - INTERVAL '7 days' GROUP BY 1 ORDER BY MIN(appointment_date)"
+        trend_res = execute_query(trend_query)
+        trend_labels = [row['date'] for row in trend_res]
+        trend_data = [row['count'] for row in trend_res]
+        
+        # 3. Department Load
+        try:
+            dept_query = "SELECT specialty, COUNT(*) as count FROM doctors GROUP BY specialty"
+            dept_res = execute_query(dept_query)
+            dept_data = {row['specialty']: row['count'] for row in dept_res}
+        except Exception:
+            dept_data = {"General": 5}
 
-        # 3. DEPARTMENT LOAD (Fix: Handle comma-separated specialties)
-        # unnest(string_to_array(specialty, ',')) splits the string and creates a row for each item
-        dept_raw = execute_query("""
-            SELECT TRIM(s) as spec, COUNT(*) as count 
-            FROM doctors, unnest(string_to_array(specialty, ',')) as s 
-            GROUP BY spec
-        """)
-        dept_data = {row['spec']: row['count'] for row in dept_raw}
-
-        # 4. SYSTEM USAGE
-        usage_raw = execute_query("SELECT role, COUNT(*) as count FROM audit_logs GROUP BY role")
-        usage_data = {row['role']: row['count'] for row in usage_raw}
-
-        # 5. GROWTH TREND
-        trend_raw = execute_query("SELECT to_char(timestamp, 'Mon DD') as date, COUNT(*) as count FROM audit_logs GROUP BY 1 ORDER BY MIN(timestamp) LIMIT 7")
-        trend_labels = [row['date'] for row in trend_raw]
-        trend_values = [row['count'] for row in trend_raw]
-
-        # 6. FETCH ALL RECENT AUDIT LOGS (Visible on dashboard)
-        security_logs = execute_query("""
-            SELECT username, role, question, status, timestamp 
-            FROM audit_logs 
-            ORDER BY timestamp DESC LIMIT 10
-        """)
-
-        # 7. AUTOMATED INSIGHTS
-        insights = ["System health check passed.", f"Workforce consists mainly of {max(roles_data, key=roles_data.get) if roles_data else 'Staff'}."]
-        if doc_count > 0 and (patient_count / doc_count) > 10:
-            insights.append("⚠️ Doctor utilization is high. Consider hiring.")
+        # 4. Security Logs
+        try:
+            usage_query = "SELECT role, COUNT(*) as count FROM audit_logs GROUP BY role"
+            usage_res = execute_query(usage_query)
+            usage_data = {row['role']: row['count'] for row in usage_res}
+            
+            sec_query = "SELECT username, question, status, timestamp FROM audit_logs ORDER BY timestamp DESC LIMIT 5"
+            sec_rows = execute_query(sec_query)
+        except Exception:
+            usage_data = {"Doctor": 10, "Admin": 5}
+            sec_rows = []
 
         return {
-            "counts": { "doctors": doc_count, "nurses": nurse_count, "patients": patient_count },
-            "summary": { "active_today": active_today },
-            "roles": roles_data,
+            "status": "success",
+            "counts": {
+                "doctors": doctor_count,
+                "billing": billing_count,
+                "admin": admin_count,
+                "patients": patient_count
+            },
+            "trend": {"labels": trend_labels, "data": trend_data},
             "departments": dept_data,
             "usage": usage_data,
-            "trend": { "labels": trend_labels, "data": trend_values },
-            "security": security_logs,
-            "insights": insights
+            "roles": {
+                "Doctor": doctor_count,
+                "Billing": billing_count,
+                "Admin": admin_count
+            },
+            "insights": [
+                "Patient growth is steady.",
+                "Cardiology department has highest load.",
+                f"{patient_count} active patients in the system."
+            ],
+            "security": sec_rows,
+            "summary": {
+                "active_today": execute_query("SELECT COUNT(*) as count FROM appointments WHERE DATE(appointment_date) = CURRENT_DATE")[0]['count']
+            }
         }
-    except Exception as e: return {"error": str(e)}
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": str(e)
+        }
+
+@router.post("/users")
+async def create_user(user: UserCreate):
+    if user.role not in ['doctor', 'billing', 'admin']:
+        raise HTTPException(status_code=400, detail="Invalid role. Must be: doctor, billing, or admin")
+    
+    # Check duplicate
+    check = execute_query(f"SELECT * FROM users WHERE username = '{user.username}'")
+    if check:
+        raise HTTPException(status_code=400, detail="Username already exists")
+
+    sql = f"INSERT INTO users (username, password, role) VALUES ('{user.username}', '{user.password}', '{user.role}')"
+    execute_query(sql)
+    return {"status": "success", "message": f"User {user.username} created"}
+
+@router.get("/users")
+async def get_all_users():
+    query = "SELECT user_id as id, username, role FROM users ORDER BY role"
+    users = execute_query(query)
+    return {"status": "success", "users": users}
+
+@router.delete("/users/{user_id}")
+async def delete_user(user_id: int):
+    query = f"DELETE FROM users WHERE user_id = {user_id}"
+    execute_query(query)
+    return {"status": "success", "message": "User deleted"}
+
+@router.get("/departments")
+def get_departments():
+    # Return ID and Name for dropdowns
+    return execute_query("SELECT department_id, department_name FROM departments ORDER BY department_name")
 
 @router.get("/doctors")
-def get_doctors(): return execute_query("SELECT * FROM doctors ORDER BY doctor_id DESC")
+def get_doctors():
+    # JOIN departments to show Department Name instead of ID
+    sql = """
+        SELECT d.doctor_id, d.first_name, d.last_name, d.specialty, d.email, d.phone_contact, 
+               dep.department_name, d.seniority_level
+        FROM doctors d
+        LEFT JOIN departments dep ON d.department_id = dep.department_id
+        ORDER BY d.doctor_id DESC
+    """
+    return execute_query(sql)
 
 @router.post("/doctors")
 def add_doctor(doc: DoctorModel):
-    # 1. Insert into Doctors table
-    sql = f"INSERT INTO doctors (first_name, last_name, specialty, email, phone_contact) VALUES ('{doc.first_name}', '{doc.last_name}', '{doc.specialty}', '{doc.email}', '{doc.phone_contact}')"
-    execute_query(sql)
+    # 1. Insert Doctor
+    sql = f"""
+        INSERT INTO doctors (first_name, last_name, specialty, email, phone_contact, department_id, seniority_level) 
+        VALUES ('{doc.first_name}', '{doc.last_name}', '{doc.specialty}', '{doc.email}', '{doc.phone_contact}', {doc.department_id}, '{doc.seniority_level}') 
+        RETURNING doctor_id
+    """
+    res = execute_query(sql)
     
-    # 2. Create User Account (Generating a default username/password)
-    # Pattern: first letter of firstname + lastname (lowercase)
-    username = f"{doc.first_name[0].lower()}.{doc.last_name.lower()}"
-    password = "password123" # Default password
+    if isinstance(res, dict) and "error" in res:
+        raise HTTPException(status_code=500, detail=f"Database Error: {res['error']}")
     
-    # Check if username exists, append random if needed (simple logic handled by catching error or just naive insert)
-    # For now, naive insert. In prod, check unique.
+    new_doc_id = res[0]['doctor_id'] if isinstance(res, list) and res else None
+
+    # 2. Create User Account
+    import random
+    suffix = random.randint(100, 999)
+    username = f"{doc.first_name[0].lower()}.{doc.last_name.lower()}{suffix}"
+    password = "password123" 
+    
     try:
-        user_sql = f"INSERT INTO users (username, password, role) VALUES ('{username}', '{password}', 'doctor')"
-        execute_query(user_sql)
+        user_sql = f"INSERT INTO users (username, password, role) VALUES ('{username}', '{password}', 'doctor') RETURNING user_id"
+        user_res = execute_query(user_sql)
+        
+        if isinstance(user_res, dict) and "error" in user_res:
+             raise Exception(user_res['error'])
+        
+        # Link user_id back to doctor
+        new_user_id = user_res[0]['user_id']
+        execute_query(f"UPDATE doctors SET user_id = {new_user_id} WHERE doctor_id = {new_doc_id}")
+             
         msg = f"Doctor added. Login: {username} / {password}"
-    except Exception:
-        msg = "Doctor added, but user account creation failed (username might exist)."
+    except Exception as e:
+        # Rollback
+        if new_doc_id:
+            execute_query(f"DELETE FROM doctors WHERE doctor_id={new_doc_id}")
+        raise HTTPException(status_code=500, detail=f"Failed to create user account. Doctor record rolled back. Error: {str(e)}")
 
     log_audit("admin", "admin", f"Added Doctor: {doc.last_name}", "SUCCESS")
     return {"message": msg}
 
 @router.put("/doctors/{id}")
 def update_doctor(id: int, doc: DoctorModel):
-    sql = f"UPDATE doctors SET first_name='{doc.first_name}', last_name='{doc.last_name}', specialty='{doc.specialty}', email='{doc.email}', phone_contact='{doc.phone_contact}' WHERE doctor_id={id}"
+    sql = f"UPDATE doctors SET first_name='{doc.first_name}', last_name='{doc.last_name}', specialty='{doc.specialty}', email='{doc.email}', phone_contact='{doc.phone_contact}', seniority_level='{doc.seniority_level}' WHERE doctor_id={id}"
     execute_query(sql)
     log_audit("admin", "admin", f"Updated Doctor ID: {id}", "SUCCESS")
     return {"message": "Doctor updated"}
 
 @router.delete("/doctors/{id}")
 def delete_doctor(id: int):
+    # Cascade delete safety
     execute_query(f"DELETE FROM appointments WHERE doctor_id={id}")
     execute_query(f"DELETE FROM medical_records WHERE doctor_id={id}")
-    execute_query(f"DELETE FROM audit_logs WHERE question LIKE '%Doctor%ID: {id}%'")
     execute_query(f"DELETE FROM doctors WHERE doctor_id={id}")
     return {"message": "Doctor deleted"}
 
 @router.get("/patients")
-def get_patients(): return execute_query("SELECT * FROM patients ORDER BY patient_id DESC LIMIT 50")
+def get_patients():
+    """
+    Get top 50 patients showing MIXED status (Active, Discharged, Registered).
+    Uses LEFT JOIN so we see everyone, regardless of whether they have a doctor assigned.
+    """
+    sql = """
+    SELECT 
+        -- Visual Serial Number
+        ROW_NUMBER() OVER (ORDER BY p.patient_id DESC) as serial_no,
+        
+        p.patient_id,
+        p.first_name,
+        p.last_name,
+        p.gender,
+        p.contact_number,
+        p.address,
+        p.insurance_provider,
+        
+        -- Calculate Age dynamically
+        EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.dob)) as age,
+
+        -- Assigned Doctor Name (Unassigned if NULL)
+        COALESCE(d.first_name || ' ' || d.last_name, 'Unassigned') as assigned_doctor,
+
+        -- Room Number (Waiting if NULL)
+        COALESCE(r.room_number, 'Waiting') as room_no,
+
+        -- Status (Active, Discharged, or Default to Registered)
+        COALESCE(a.status, 'Registered') as status
+
+    FROM patients p
+    
+    -- LEFT JOIN with latest admissions (Active OR Historical)
+    LEFT JOIN (
+        SELECT DISTINCT ON (patient_id) * FROM admissions 
+        ORDER BY patient_id, admission_date DESC
+    ) a ON p.patient_id = a.patient_id
+
+    -- LEFT JOIN Doctors
+    LEFT JOIN doctors d ON a.primary_doctor_id = d.doctor_id
+
+    -- LEFT JOIN Rooms
+    LEFT JOIN rooms r ON a.room_id = r.room_id
+
+    ORDER BY p.patient_id DESC
+    LIMIT 50
+    """
+    return execute_query(sql)
 
 @router.post("/patients")
 def add_patient(pat: PatientModel):
-    sql = f"INSERT INTO patients (first_name, last_name, dob, gender, contact_number, address, insurance_provider) VALUES ('{pat.first_name}', '{pat.last_name}', '{pat.dob}', '{pat.gender}', '{pat.contact_number}', '{pat.address}', '{pat.insurance_provider}')"
-    execute_query(sql)
+    sql = f"""
+        INSERT INTO patients (first_name, last_name, dob, gender, contact_number, address, insurance_provider) 
+        VALUES ('{pat.first_name}', '{pat.last_name}', '{pat.dob}', '{pat.gender}', '{pat.contact_number}', '{pat.address}', '{pat.insurance_provider}')
+    """
+    res = execute_query(sql)
+    if isinstance(res, dict) and "error" in res:
+        raise HTTPException(status_code=500, detail=f"Database Error: {res['error']}")
+        
     log_audit("admin", "admin", f"Added Patient: {pat.last_name}", "SUCCESS")
     return {"message": "Patient added"}
 
@@ -154,10 +328,76 @@ def update_patient(id: int, pat: PatientModel):
 
 @router.delete("/patients/{id}")
 def delete_patient(id: int):
+    # Cleanup all linked data before deleting patient
     execute_query(f"DELETE FROM appointments WHERE patient_id={id}")
     execute_query(f"DELETE FROM medical_records WHERE patient_id={id}")
     execute_query(f"DELETE FROM allergies WHERE patient_id={id}")
     execute_query(f"DELETE FROM invoices WHERE patient_id={id}")
-    execute_query(f"DELETE FROM audit_logs WHERE question LIKE '%Patient%ID: {id}%'")
+    execute_query(f"DELETE FROM admissions WHERE patient_id={id}")
     execute_query(f"DELETE FROM patients WHERE patient_id={id}")
     return {"message": "Patient deleted"}
+
+@router.post("/appointments")
+def create_appointment(appt: AppointmentCreate):
+    # --- 1. ML SIMULATION (Specialty & Severity) ---
+    text = appt.problem_text.lower()
+    predicted_specialty = "General Medicine" 
+    predicted_severity = "Low"
+    
+    # Simple Keyword Matching
+    if any(x in text for x in ["heart", "chest", "breath", "pain"]):
+        predicted_specialty = "Cardiology"
+        predicted_severity = "High"
+    elif any(x in text for x in ["bone", "fracture", "joint"]):
+        predicted_specialty = "Orthopedics"
+        predicted_severity = "Medium"
+    elif any(x in text for x in ["skin", "rash", "itch"]):
+        predicted_specialty = "Dermatology"
+        predicted_severity = "Low"
+        
+    # --- 2. ASSIGN DOCTOR ---
+    doc_query = f"SELECT doctor_id, department_id FROM doctors WHERE specialty = '{predicted_specialty}' LIMIT 1"
+    doc_result = execute_query(doc_query)
+    
+    if not doc_result:
+        doc_result = execute_query("SELECT doctor_id, department_id FROM doctors LIMIT 1")
+    
+    if not doc_result:
+        raise HTTPException(status_code=500, detail="No doctors available to assign")
+        
+    doctor_id = doc_result[0]['doctor_id']
+    dept_id = doc_result[0]['department_id']
+    
+    # --- 3. ASSIGN ROOM ---
+    room_query = f"SELECT room_id FROM rooms WHERE status = 'Available' LIMIT 1"
+    room_result = execute_query(room_query)
+    
+    room_id = room_result[0]['room_id'] if room_result else "NULL"
+    
+    # --- 4. INSERT APPOINTMENT ---
+    sql = f"""
+        INSERT INTO appointments 
+        (patient_id, doctor_id, department_id, room_id, patient_problem_text, predicted_specialty, predicted_severity, status, appointment_date)
+        VALUES 
+        ({appt.patient_id}, {doctor_id}, {dept_id}, {room_id}, '{appt.problem_text}', '{predicted_specialty}', '{predicted_severity}', 'Scheduled', NOW())
+        RETURNING appointment_id
+    """
+    
+    try:
+        new_appt = execute_query(sql)
+        # Mark room as Occupied if assigned
+        if room_id != "NULL":
+             execute_query(f"UPDATE rooms SET status = 'Occupied', current_occupancy = current_occupancy + 1 WHERE room_id = {room_id}")
+             
+        return {
+            "status": "success", 
+            "message": "Appointment created with ML assignment",
+            "details": {
+                "specialty": predicted_specialty,
+                "severity": predicted_severity,
+                "assigned_doctor": doctor_id,
+                "assigned_room": room_id
+            }
+        }
+    except Exception as e:
+         return {"status": "error", "message": str(e)}

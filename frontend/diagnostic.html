@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>System Diagnostic</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #fff;
+        }
+
+        .status {
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 4px;
+        }
+
+        .pass {
+            background: #064e3b;
+            color: #6ee7b7;
+            border: 1px solid #10b981;
+        }
+
+        .fail {
+            background: #7f1d1d;
+            color: #fca5a5;
+            border: 1px solid #ef4444;
+        }
+
+        .loading {
+            background: #333;
+            color: #aaa;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" onerror="log('CDN', 'Failed to load Chart.js', false)"></script>
+</head>
+
+<body>
+    <h1>mediPortal Diagnostic Tool</h1>
+    <div id="logs"></div>
+
+    <script>
+        function log(component, msg, success) {
+            const div = document.createElement('div');
+            div.className = 'status ' + (success ? 'pass' : 'fail');
+            div.innerHTML = `<strong>[${component}]</strong> ${msg}`;
+            document.getElementById('logs').appendChild(div);
+        }
+
+        async function runTests() {
+            // 1. Check CDN
+            if (typeof Chart !== 'undefined') {
+                log('CDN', 'Chart.js loaded successfully', true);
+            } else {
+                log('CDN', 'Chart.js NOT found (Check Internet/Firewall)', false);
+            }
+
+            // 2. Check Backend Root
+            try {
+                const res = await fetch('http://127.0.0.1:8000/');
+                if (res.ok) log('API_ROOT', 'Backend is reachable', true);
+                else log('API_ROOT', 'Backend reachable but returned ' + res.status, false);
+            } catch (e) {
+                log('API_ROOT', 'Connection Failed (Is uvicorn running? CORS?) ' + e.message, false);
+            }
+
+            // 3. Check Admin Endpoint (Corrected Path)
+            try {
+                const res = await fetch('http://127.0.0.1:8000/admin/analytics');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.counts) log('API_ADMIN', 'Admin Analytics Valid', true);
+                    else log('API_ADMIN', 'Invalid Data Structure', false);
+                } else {
+                    log('API_ADMIN', 'Endpoint Error ' + res.status, false);
+                }
+            } catch (e) {
+                log('API_ADMIN', 'Fetch Failed: ' + e.message, false);
+            }
+
+            // 4. Check Doctor Endpoint
+            try {
+                const res = await fetch('http://127.0.0.1:8000/doctor/analytics');
+                if (res.ok) log('API_DOCTOR', 'Doctor Analytics Valid', true);
+                else log('API_DOCTOR', 'Endpoint Error ' + res.status, false);
+            } catch (e) { log('API_DOCTOR', 'Fetch Failed', false); }
+
+            // 5. Check Billing Endpoint
+            try {
+                const res = await fetch('http://127.0.0.1:8000/billing/analytics');
+                if (res.ok) log('API_BILLING', 'Billing Analytics Valid', true);
+                else log('API_BILLING', 'Endpoint Error ' + res.status, false);
+            } catch (e) { log('API_BILLING', 'Fetch Failed', false); }
+        }
+
+        runTests();
+    </script>
+</body>
+
+</html>
