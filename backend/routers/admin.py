@@ -4,7 +4,7 @@ from typing import Optional
 from datetime import datetime
 from backend.db import execute_query
 
-router = APIRouter(prefix="/admin", tags=["admin"])
+router = APIRouter(tags=["admin"])
 
 # --- Pydantic Models ---
 class UserCreate(BaseModel):
@@ -61,25 +61,36 @@ async def login(request: LoginRequest):
     if request.role not in ['doctor', 'billing', 'admin']:
         raise HTTPException(status_code=400, detail="Invalid role")
     
-    query = f"SELECT * FROM users WHERE username = '{request.username}' AND role = '{request.role}'"
-    result = execute_query(query)
-    
-    if not result:
-        # Check if user exists with a DIFFERENT role to give a helpful error
-        check_query = f"SELECT role FROM users WHERE username = '{request.username}'"
-        check_res = execute_query(check_query)
+    try:
+        query = f"SELECT * FROM users WHERE username = '{request.username}' AND role = '{request.role}'"
+        result = execute_query(query)
         
-        if check_res:
-            actual_role = check_res[0]['role']
-            raise HTTPException(status_code=401, detail=f"Invalid role. You are registered as '{actual_role}'. Please switch tabs.")
+        if not result:
+            # Check if user exists with a DIFFERENT role to give a helpful error
+            check_query = f"SELECT role FROM users WHERE username = '{request.username}'"
+            check_res = execute_query(check_query)
+            
+            if check_res:
+                actual_role = check_res[0]['role']
+                raise HTTPException(status_code=401, detail=f"Invalid role. You are registered as '{actual_role}'. Please switch tabs.")
+            
+            raise HTTPException(status_code=401, detail="Invalid username or password")
         
-        raise HTTPException(status_code=401, detail="Invalid credentials")
-    
-    return {
-        "status": "success",
-        "role": request.role,
-        "username": request.username
-    }
+        # Verify password (in a real app, use hashing!)
+        user = result[0]
+        if user['password'] != request.password:
+             raise HTTPException(status_code=401, detail="Invalid username or password")
+
+        return {
+            "status": "success",
+            "role": request.role,
+            "username": request.username,
+            "user_id": user['user_id']
+        }
+    except Exception as e:
+        if isinstance(e, HTTPException):
+            raise e
+        raise HTTPException(status_code=500, detail=f"Login failed due to server error: {str(e)}")
 
 @router.get("/analytics")
 async def get_analytics():

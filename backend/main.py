@@ -30,10 +30,10 @@ app.add_middleware(
 # --- 2. INCLUDE ROUTERS ---
 # This connects the split files to the main 'app' instance.
 # Note: You can add prefixes like prefix="/admin" if you want to group them.
-app.include_router(admin.router)
-app.include_router(doctor.router)
-app.include_router(billing.router)
-app.include_router(patient.router)
+app.include_router(admin.router, prefix="/admin", tags=["Admin"])
+app.include_router(doctor.router, tags=["Doctor"])
+app.include_router(billing.router, tags=["Billing"])
+app.include_router(patient.router, tags=["Patient"])
 
 # --- 3. HEALTH CHECK ROOT ENDPOINT ---
 @app.get("/")

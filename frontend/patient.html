@@ -306,31 +306,52 @@
             btn.disabled = true;
 
             try {
-                const res = await fetch('http://127.0.0.1:8000/patient/analyze', {
+                const res = await fetch('http://127.0.0.1:8000/predict-and-assign', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
+                    body: JSON.stringify({ 
+                        patient_id: 1,  // Temporary patient ID
+                        problem_description: text 
+                    })
                 });
                 const data = await res.json();
 
-                if (data.error) throw new Error(data.error);
-
-                const an = data.analysis;
+                if (data.detail) throw new Error(data.detail);
 
                 document.getElementById('resultsArea').style.display = 'block';
-                document.getElementById('resSpec').innerText = `${an.specialization} (${an.confidence}%)`;
+                
+                // Display department prediction
+                document.getElementById('resSpec').innerText = `${data.predicted_department} (${Math.round(data.confidence_score * 100)}%)`;
 
+                // Display severity (default to Medium since endpoint doesn't return severity)
                 const sevBadge = document.getElementById('resSev');
-                sevBadge.className = `badge badge-${an.severity.toLowerCase()}`;
-                sevBadge.innerText = an.severity;
+                sevBadge.className = `badge badge-medium`;
+                sevBadge.innerText = data.status === 'Assigned' ? 'Medium' : 'Pending';
 
+                // Display doctor information
                 const docEl = document.getElementById('resDoc');
-                docEl.innerText = an.doctor;
-                docEl.style.color = an.doctor_status === 'Unavailable' ? '#ef4444' : '#166534';
+                if (data.status === 'Assigned' && data.assigned_doctor) {
+                    docEl.innerText = data.assigned_doctor.full_name;
+                    docEl.style.color = '#166534';
+                } else {
+                    docEl.innerText = 'Doctor Not Available';
+                    docEl.style.color = '#ef4444';
+                }
 
-                document.getElementById('resRoom').innerText = an.room;
+                // Display room information
+                const roomEl = document.getElementById('resRoom');
+                if (data.status === 'Assigned' && data.assigned_doctor && data.assigned_doctor.room_number) {
+                    roomEl.innerText = data.assigned_doctor.room_number;
+                } else {
+                    roomEl.innerText = 'Not Assigned';
+                }
 
-                document.getElementById('resExp').innerHTML = `<strong>Explainable AI Decision:</strong><br>${an.explanation}`;
+                // Display explanation
+                document.getElementById('resExp').innerHTML = `<strong>Analysis:</strong><br>
+                    Department: ${data.predicted_department}<br>
+                    Confidence: ${Math.round(data.confidence_score * 100)}%<br>
+                    Status: ${data.status}<br>
+                    ${data.message || ''}`;
 
             } catch (e) {
                 alert("Error: " + e.message);

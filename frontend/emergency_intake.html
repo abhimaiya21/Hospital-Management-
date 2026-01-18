@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Emergency Patient Intake - MediPortal</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --bg: #f8fafc;
+            --sidebar-bg: #0f172a;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            display: flex;
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 260px;
+            background: var(--sidebar-bg);
+            color: #cbd5e1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .sidebar-brand {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            font-weight: 700;
+            color: white;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 1.1rem;
+        }
+
+        .nav-link {
+            padding: 14px 24px;
+            color: #94a3b8;
+            text-decoration: none;
+            display: flex;
+            gap: 12px;
+            font-weight: 500;
+            border-left: 3px solid transparent;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .nav-link.active {
+            background: rgba(239, 68, 68, 0.1);
+            color: #f87171;
+            border-left-color: #ef4444;
+        }
+
+        .nav-link:hover:not(.active) {
+            background: rgba(255, 255, 255, 0.05);
+            color: white;
+        }
+
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .top-bar {
+            height: 70px;
+            background: white;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 32px;
+            flex-shrink: 0;
+        }
+
+        .page-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--error);
+        }
+
+        .scroll-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 30px;
+            background: var(--bg);
+        }
+
+        .intake-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px solid var(--error);
+            max-width: 1000px;
+            margin: 0 auto;
+            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .form-full {
+            grid-column: 1 / -1;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--text-main);
+            font-size: 0.9rem;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 6px;
+            font-family: 'Inter';
+            font-size: 0.95rem;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .required {
+            color: var(--error);
+        }
+
+        .btn-emergency {
+            background: var(--error);
+            color: white;
+            border: none;
+            padding: 14px 30px;
+            border-radius: 8px;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 20px;
+            transition: 0.2s;
+        }
+
+        .btn-emergency:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+        }
+
+        .btn-emergency:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .status-messages {
+            margin-top: 25px;
+            padding: 20px;
+            background: #f8fafc;
+            border-radius: 8px;
+            display: none;
+        }
+
+        .status-messages.show {
+            display: block;
+        }
+
+        .message-item {
+            padding: 8px 12px;
+            margin: 6px 0;
+            border-radius: 6px;
+            font-weight: 500;
+        }
+
+        .message-success {
+            background: #dcfce7;
+            color: #166534;
+            border-left: 4px solid var(--success);
+        }
+
+        .message-warning {
+            background: #fef9c3;
+            color: #854d0e;
+            border-left: 4px solid var(--warning);
+        }
+
+        .message-error {
+            background: #fee2e2;
+            color: #991b1b;
+            border-left: 4px solid var(--error);
+        }
+
+        .results-card {
+            margin-top: 20px;
+            padding: 25px;
+            background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            border-radius: 10px;
+            border: 2px solid var(--primary);
+            display: none;
+        }
+
+        .results-card.show {
+            display: block;
+        }
+
+        .result-header {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .result-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .result-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .result-item-label {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .result-item-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-main);
+        }
+
+        .emergency-banner {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--error);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .emergency-banner i {
+            font-size: 1.5rem;
+            color: var(--error);
+        }
+    </style>
+</head>
+
+<body>
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-truck-medical" style="margin-right:10px;"></i> Emergency Intake
+        </div>
+        <a class="nav-link active"><i class="fa-solid fa-user-plus"></i> New Patient</a>
+        <a class="nav-link" href="patient.html"><i class="fa-solid fa-file-medical"></i> Regular Intake</a>
+        <div style="flex-grow:1"></div>
+        <a class="nav-link" href="index.html" style="color:#ef4444;"><i
+                class="fa-solid fa-arrow-right-from-bracket"></i> Exit</a>
+    </nav>
+
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="page-title">
+                <i class="fa-solid fa-siren-on fa-beat"></i> EMERGENCY PATIENT INTAKE
+            </div>
+            <div style="font-weight:600; color:var(--error);">CRITICAL PRIORITY</div>
+        </div>
+
+        <div class="scroll-area">
+            <div class="intake-card">
+                <div class="emergency-banner">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div>
+                        <strong>Emergency Registration System</strong><br>
+                        <span style="font-size:0.9rem; color:var(--text-muted);">All patients are treated as
+                            CRITICAL/EMERGENCY priority by default</span>
+                    </div>
+                </div>
+
+                <h2 style="margin-top:0; color:var(--error);">Patient Information</h2>
+
+                <form id="emergencyForm">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>First Name <span class="required">*</span></label>
+                            <input type="text" id="firstName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Last Name <span class="required">*</span></label>
+                            <input type="text" id="lastName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Date of Birth <span class="required">*</span></label>
+                            <input type="date" id="dob" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Gender <span class="required">*</span></label>
+                            <select id="gender" required>
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Blood Group</label>
+                            <select id="bloodGroup">
+                                <option value="">Select Blood Group</option>
+                                <option value="A+">A+</option>
+                                <option value="A-">A-</option>
+                                <option value="B+">B+</option>
+                                <option value="B-">B-</option>
+                                <option value="AB+">AB+</option>
+                                <option value="AB-">AB-</option>
+                                <option value="O+">O+</option>
+                                <option value="O-">O-</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Contact Number <span class="required">*</span></label>
+                            <input type="tel" id="contactNumber" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Emergency Contact Name</label>
+                            <input type="text" id="emergencyContactName">
+                        </div>
+                        <div class="form-group">
+                            <label>Emergency Contact Number</label>
+                            <input type="tel" id="emergencyContact">
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="email">
+                        </div>
+                        <div class="form-group">
+                            <label>City</label>
+                            <input type="text" id="city">
+                        </div>
+                        <div class="form-group">
+                            <label>State</label>
+                            <input type="text" id="state">
+                        </div>
+                        <div class="form-group">
+                            <label>Pincode</label>
+                            <input type="text" id="pincode">
+                        </div>
+                        <div class="form-group form-full">
+                            <label>Address</label>
+                            <textarea id="address" rows="2"></textarea>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top:30px; color:var(--error);">Medical Condition</h3>
+                    <div class="form-grid">
+                        <div class="form-group form-full">
+                            <label>Problem Description <span class="required">*</span></label>
+                            <textarea id="problemDescription" required
+                                placeholder="Describe the emergency situation, symptoms, and what happened..."></textarea>
+                        </div>
+                        <div class="form-group form-full">
+                            <label>Additional Symptoms</label>
+                            <textarea id="symptoms" rows="3"
+                                placeholder="Any additional symptoms or medical history..."></textarea>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn-emergency">
+                        <i class="fa-solid fa-hospital-user"></i> REGISTER EMERGENCY PATIENT
+                    </button>
+                </form>
+
+                <div id="statusMessages" class="status-messages"></div>
+                <div id="resultsCard" class="results-card"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('emergencyForm').addEventListener('submit', async function (e) {
+            e.preventDefault();
+
+            const btn = document.querySelector('.btn-emergency');
+            const statusDiv = document.getElementById('statusMessages');
+            const resultsDiv = document.getElementById('resultsCard');
+
+            // Clear previous results
+            statusDiv.innerHTML = '';
+            statusDiv.classList.remove('show');
+            resultsDiv.innerHTML = '';
+            resultsDiv.classList.remove('show');
+
+            // Disable button
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PROCESSING EMERGENCY...';
+
+            try {
+                const formData = {
+                    first_name: document.getElementById('firstName').value,
+                    last_name: document.getElementById('lastName').value,
+                    dob: document.getElementById('dob').value,
+                    gender: document.getElementById('gender').value,
+                    blood_group: document.getElementById('bloodGroup').value || null,
+                    contact_number: document.getElementById('contactNumber').value,
+                    emergency_contact: document.getElementById('emergencyContact').value || null,
+                    emergency_contact_name: document.getElementById('emergencyContactName').value || null,
+                    email: document.getElementById('email').value || null,
+                    address: document.getElementById('address').value || null,
+                    city: document.getElementById('city').value || null,
+                    state: document.getElementById('state').value || null,
+                    pincode: document.getElementById('pincode').value || null,
+                    problem_description: document.getElementById('problemDescription').value,
+                    symptoms: document.getElementById('symptoms').value || null
+                };
+
+                const response = await fetch('http://127.0.0.1:8000/emergency-intake', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Registration failed');
+                }
+
+                // Display status messages
+                displayMessages(data);
+
+                // Display results
+                displayResults(data);
+
+                // Scroll to results
+                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+            } catch (error) {
+                statusDiv.innerHTML = `<div class="message-item message-error">❌ ERROR: ${error.message}</div>`;
+                statusDiv.classList.add('show');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-hospital-user"></i> REGISTER EMERGENCY PATIENT';
+            }
+        });
+
+        function displayMessages(data) {
+            const statusDiv = document.getElementById('statusMessages');
+            statusDiv.innerHTML = '<h3 style="margin-top:0;">Registration Progress:</h3>';
+
+            if (data.messages && data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    let className = 'message-success';
+                    if (msg.includes('❌')) className = 'message-error';
+                    else if (msg.includes('⚠️')) className = 'message-warning';
+
+                    statusDiv.innerHTML += `<div class="message-item ${className}">${msg}</div>`;
+                });
+            }
+
+            statusDiv.classList.add('show');
+        }
+
+        function displayResults(data) {
+            const resultsDiv = document.getElementById('resultsCard');
+
+            if (data.registration_status === 'complete' || data.registration_status === 'partial') {
+                let html = `<div class="result-header">${data.overall_message}</div>`;
+                html += '<div class="result-grid">';
+
+                // Patient ID
+                if (data.patient_id) {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-item-label">Patient ID</div>
+                            <div class="result-item-value" style="color:var(--success);">#${data.patient_id}</div>
+                        </div>
+                    `;
+                }
+
+                // Department
+                if (data.predicted_department) {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-item-label">Department</div>
+                            <div class="result-item-value">${data.predicted_department}</div>
+                        </div>
+                    `;
+                }
+
+                // Severity
+                if (data.severity) {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-item-label">Severity</div>
+                            <div class="result-item-value" style="color:var(--error);">${data.severity}</div>
+                        </div>
+                    `;
+                }
+
+                // Doctor
+                if (data.assigned_doctor) {
+                    if (data.assigned_doctor.status === 'available') {
+                        html += `
+                            <div class="result-item">
+                                <div class="result-item-label">Assigned Doctor</div>
+                                <div class="result-item-value" style="color:var(--success);">
+                                    ${data.assigned_doctor.full_name}<br>
+                                    <span style="font-size:0.85rem; color:var(--text-muted);">
+                                        Room: ${data.assigned_doctor.room_number || 'N/A'}<br>
+                                        Fee: ₹${data.assigned_doctor.consultation_fee}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="result-item">
+                                <div class="result-item-label">Doctor Status</div>
+                                <div class="result-item-value" style="color:var(--error);">Doctor Not Available</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Room
+                if (data.assigned_room) {
+                    if (data.assigned_room.status === 'assigned') {
+                        html += `
+                            <div class="result-item">
+                                <div class="result-item-label">Assigned Room</div>
+                                <div class="result-item-value" style="color:var(--success);">
+                                    ${data.assigned_room.room_number}<br>
+                                    <span style="font-size:0.85rem; color:var(--text-muted);">
+                                        ${data.assigned_room.room_type}<br>
+                                        Wing ${data.assigned_room.wing}, Floor ${data.assigned_room.floor}
+                                    </span>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        html += `
+                            <div class="result-item">
+                                <div class="result-item-label">Room Status</div>
+                                <div class="result-item-value" style="color:var(--error);">Room Not Available</div>
+                            </div>
+                        `;
+                    }
+                }
+
+                // Appointment ID
+                if (data.appointment_id) {
+                    html += `
+                        <div class="result-item">
+                            <div class="result-item-label">Appointment ID</div>
+                            <div class="result-item-value" style="color:var(--primary);">#${data.appointment_id}</div>
+                        </div>
+                    `;
+                }
+
+                html += '</div>';
+                resultsDiv.innerHTML = html;
+                resultsDiv.classList.add('show');
+            }
+        }
+    </script>
+</body>
+
+</html>
