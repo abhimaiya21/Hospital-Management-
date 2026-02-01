@@ -1,21 +1,54 @@
 import os
 import psycopg2
 from psycopg2.extras import RealDictCursor
+from psycopg2 import pool
 from dotenv import load_dotenv
+from typing import List, Dict, Any, Optional
 
 # Load variables from .env
 load_dotenv()
 
-def get_db_connection():
+# ✅ NEW: Connection pool for better performance
+_connection_pool: Optional[pool.SimpleConnectionPool] = None
+
+def init_connection_pool():
+    """
+    Initialize connection pool on startup
+    ✅ NEW: Better performance, connection reuse, automatic management
+    """
+    global _connection_pool
     try:
-        # Ensure DATABASE_URL is set
         db_url = os.getenv("DATABASE_URL")
         if not db_url:
-            print("❌ Error: DATABASE_URL environment variable not set.")
             raise Exception("DATABASE_URL environment variable not set.")
-            
-        conn = psycopg2.connect(db_url)
-        return conn
+        
+        # Create pool with min=1, max=20 connections
+        _connection_pool = pool.SimpleConnectionPool(
+            minconn=1,
+            maxconn=20,
+            dsn=db_url
+        )
+        print("✅ Connection pool initialized (1-20 connections)")
+    except Exception as e:
+        print(f"❌ Error initializing connection pool: {e}")
+        raise
+
+def get_db_connection():
+    """
+    ✅ NEW: Get connection from pool instead of creating new ones
+    Falls back to direct connection if pool not initialized
+    """
+    global _connection_pool
+    
+    try:
+        if _connection_pool is not None:
+            return _connection_pool.getconn()
+        else:
+            # Fallback: Direct connection (for backward compatibility)
+            db_url = os.getenv("DATABASE_URL")
+            if not db_url:
+                raise Exception("DATABASE_URL environment variable not set.")
+            return psycopg2.connect(db_url)
     except psycopg2.OperationalError as e:
         print(f"❌ Database Operational Error: {e}")
         raise Exception(f"Could not connect to database. Check credentials and server status. Details: {e}")
@@ -23,35 +56,88 @@ def get_db_connection():
         print(f"❌ Database Connection Error: {e}")
         raise e
 
-
-
-def execute_query(sql_query: str):
+def return_connection(conn):
     """
-    Connects to DB, runs the SQL, and returns results as JSON.
+    ✅ NEW: Return connection to pool
     """
-    conn = get_db_connection()
+    global _connection_pool
+    try:
+        if _connection_pool is not None and conn:
+            _connection_pool.putconn(conn)
+    except Exception as e:
+        print(f"⚠️ Error returning connection to pool: {e}")
+
+def close_connection_pool():
+    """
+    ✅ NEW: Close all connections in pool (on shutdown)
+    """
+    global _connection_pool
+    try:
+        if _connection_pool is not None:
+            _connection_pool.closeall()
+            print("✅ Connection pool closed")
+    except Exception as e:
+        print(f"⚠️ Error closing connection pool: {e}")
+
+def execute_query(sql_query: str) -> List[Dict[str, Any]]:
+    """
+    Execute SQL query with improved error handling and automatic connection return
+    ✅ NEW: Connection pooling, automatic rollback on error, proper cleanup
+    
+    Returns:
+        - List of dicts for SELECT queries
+        - List with success message for INSERT/UPDATE
+        - Dict with error for failed queries
+    """
+    conn = None
     results = []
     
     try:
+        conn = get_db_connection()
+        
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(sql_query)
             
-            # If it's a SELECT query, return data
+            # Determine query type
+            sql_upper = sql_query.strip().upper()
+            is_write_query = sql_upper.startswith(('INSERT', 'UPDATE', 'DELETE'))
+            
+            # If it's a SELECT query or a write query with RETURNING, fetch data
             if cur.description:
                 results = cur.fetchall()
-            else:
-                # If it's INSERT/UPDATE, commit changes
+                # Convert RealDictRow to regular dict for JSON serialization
+                results = [dict(row) for row in results]
+            
+            # If it's INSERT/UPDATE/DELETE, commit changes
+            if is_write_query:
                 conn.commit()
-                results = [{"status": "success", "message": "Operation completed."}]
+                if not results:
+                    results = [{"status": "success", "message": "Operation completed successfully."}]
                 
+    except psycopg2.Error as e:
+        # ✅ NEW: Automatic rollback on database error
+        if conn:
+            try:
+                conn.rollback()
+            except:
+                pass
+        print(f"❌ Database error executing query: {e}")
+        results = {"error": str(e)}
     except Exception as e:
+        # ✅ NEW: Automatic rollback on unexpected error
+        if conn:
+            try:
+                conn.rollback()
+            except:
+                pass
+        print(f"❌ Unexpected error executing query: {e}")
         import traceback
         traceback.print_exc()
-        return {"error": str(e)}
-        
+        results = {"error": str(e)}
     finally:
-        conn.close()
-        
+        # ✅ NEW: Always return connection to pool
+        return_connection(conn)
+    
     return results
 
 

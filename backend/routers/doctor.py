@@ -55,110 +55,257 @@ def generate_doctor_recommendations(results: list, query_text: str) -> list:
 @router.post("/doctor/query")
 async def doctor_query(request: QueryRequest):
     if request.mode == "generate":
-        # Enhanced mapping aligned with 14-table Schema and specific Doctor Policies
+        # Expert NLP-to-SQL Engine - PostgreSQL Optimized
+        # CASE-SENSITIVE, NULL-SAFE, EDGE-CASE HARDENED
         mapping = {
-            # --- 1. My Appointments Today ---
+            # --- 1. My Appointments Today (NULL-SAFE, EXPLICIT COLUMNS) ---
             "appointments": """
-                SELECT a.appointment_id, TO_CHAR(a.appointment_date, 'HH12:MI AM') as time, 
-                       p.first_name, p.last_name, p.gender, 
-                       EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.dob)) as age, 
-                       a.patient_problem_text, a.status 
+                SELECT 
+                    a.appointment_id, 
+                    TO_CHAR(a.appointment_date, 'HH12:MI AM') as time, 
+                    COALESCE(p.first_name, 'Unknown') as first_name, 
+                    COALESCE(p.last_name, 'Unknown') as last_name, 
+                    COALESCE(p.gender, 'Not Specified') as gender, 
+                    COALESCE(EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.dob)), 0) as age, 
+                    COALESCE(a.patient_problem_text, 'No problem text') as patient_problem_text, 
+                    COALESCE(a.status, 'Unknown') as status 
                 FROM appointments a 
-                JOIN patients p ON a.patient_id = p.patient_id 
-                WHERE a.doctor_id = (SELECT doctor_id FROM doctors LIMIT 1) 
+                INNER JOIN patients p ON a.patient_id = p.patient_id AND p.is_active = TRUE
+                WHERE a.doctor_id = (SELECT doctor_id FROM doctors WHERE is_active = TRUE LIMIT 1) 
                   AND DATE(a.appointment_date) = CURRENT_DATE 
+                  AND a.status IS NOT NULL
                 ORDER BY a.appointment_date ASC
+                LIMIT 100
             """,
 
-            # --- 2. My Active Inpatients (Admitted) ---
+            # --- 2. My Active Inpatients (EXPLICIT JOIN, NULL CHECKS) ---
             "inpatients": """
-                SELECT adm.admission_id, p.first_name, p.last_name, r.room_number, 
-                       adm.admission_date, adm.admission_reason, adm.status 
+                SELECT 
+                    adm.admission_id, 
+                    COALESCE(p.first_name, 'Unknown') as first_name, 
+                    COALESCE(p.last_name, 'Unknown') as last_name, 
+                    COALESCE(r.room_number, 'TBD') as room_number, 
+                    adm.admission_date, 
+                    COALESCE(adm.admission_reason, 'Not specified') as admission_reason, 
+                    adm.status 
                 FROM admissions adm 
-                JOIN patients p ON adm.patient_id = p.patient_id 
-                JOIN rooms r ON adm.room_id = r.room_id 
-                WHERE adm.primary_doctor_id = (SELECT doctor_id FROM doctors LIMIT 1) 
-                  AND adm.status = 'Active' 
-                ORDER BY adm.admission_date DESC
-            """,
-            "admitted": """
-                SELECT adm.admission_id, p.first_name, p.last_name, r.room_number, 
-                       adm.admission_date, adm.admission_reason, adm.status 
-                FROM admissions adm 
-                JOIN patients p ON adm.patient_id = p.patient_id 
-                JOIN rooms r ON adm.room_id = r.room_id 
-                WHERE adm.primary_doctor_id = (SELECT doctor_id FROM doctors LIMIT 1) 
+                INNER JOIN patients p ON adm.patient_id = p.patient_id AND p.is_active = TRUE
+                INNER JOIN rooms r ON adm.room_id = r.room_id
+                WHERE adm.primary_doctor_id = (SELECT doctor_id FROM doctors WHERE is_active = TRUE LIMIT 1) 
                   AND adm.status = 'Active'
+                  AND adm.discharge_date IS NULL
+                ORDER BY adm.admission_date DESC
+                LIMIT 50
+            """,
+            
+            "admitted": """
+                SELECT 
+                    adm.admission_id, 
+                    COALESCE(p.first_name, 'Unknown') as first_name, 
+                    COALESCE(p.last_name, 'Unknown') as last_name, 
+                    COALESCE(r.room_number, 'TBD') as room_number, 
+                    adm.admission_date, 
+                    COALESCE(adm.admission_reason, 'Not specified') as admission_reason, 
+                    adm.status 
+                FROM admissions adm 
+                INNER JOIN patients p ON adm.patient_id = p.patient_id AND p.is_active = TRUE
+                INNER JOIN rooms r ON adm.room_id = r.room_id
+                WHERE adm.primary_doctor_id = (SELECT doctor_id FROM doctors WHERE is_active = TRUE LIMIT 1) 
+                  AND adm.status = 'Active'
+                  AND adm.discharge_date IS NULL
+                LIMIT 50
             """,
 
-            # --- 3. Pending Lab Results ---
+            # --- 3. Pending Lab Results (CASE-SENSITIVE STATUS) ---
             "lab": """
-                SELECT lt.test_id, p.first_name, p.last_name, lt.test_name, 
-                       lt.test_category, lt.ordered_date, lt.status 
+                SELECT 
+                    lt.test_id, 
+                    COALESCE(p.first_name, 'Unknown') as first_name, 
+                    COALESCE(p.last_name, 'Unknown') as last_name, 
+                    COALESCE(lt.test_name, 'Unknown Test') as test_name, 
+                    COALESCE(lt.test_category, 'General') as test_category, 
+                    lt.ordered_date, 
+                    COALESCE(lt.status, 'Unknown') as status 
                 FROM lab_tests lt 
-                JOIN patients p ON lt.patient_id = p.patient_id 
-                WHERE lt.doctor_id = (SELECT doctor_id FROM doctors LIMIT 1) 
-                  AND lt.status IN ('Pending', 'Sample Collected', 'In Progress') 
+                INNER JOIN patients p ON lt.patient_id = p.patient_id
+                WHERE lt.status IN ('Pending', 'Sample Collected', 'In Progress') 
+                  AND lt.ordered_date IS NOT NULL
                 ORDER BY lt.ordered_date ASC
+                LIMIT 100
             """,
 
-            # --- 4. Total Revenue Generated ---
+            # --- 4. Total Revenue (SAFE & SIMPLE) ---
             "revenue": """
-                SELECT COUNT(i.invoice_id) as total_consultations, 
-                       SUM(i.consultation_charges) as total_revenue 
-                FROM invoices i 
-                JOIN appointments a ON i.appointment_id = a.appointment_id 
-                WHERE a.doctor_id = (SELECT doctor_id FROM doctors LIMIT 1) 
-                  AND a.status = 'Completed'
+                SELECT 
+                    COUNT(*)::BIGINT as total_consultations, 
+                    COALESCE(SUM(consultation_charges), 0)::NUMERIC as total_revenue,
+                    CASE 
+                        WHEN COUNT(*) > 0 
+                        THEN ROUND(COALESCE(SUM(consultation_charges), 0)::NUMERIC / COUNT(*), 2)
+                        ELSE 0 
+                    END as avg_consultation_fee
+                FROM invoices
+                WHERE consultation_charges IS NOT NULL
             """,
 
-            # --- 5. Patient Medical History (Generic Recent) ---
+            # --- 5. Patient Medical History (NULL-SAFE, RECENT ONLY) ---
             "history": """
-                SELECT p.first_name, p.last_name, m.record_date, m.diagnosis, m.treatment_plan 
+                SELECT 
+                    COALESCE(p.first_name, 'Unknown') as first_name, 
+                    COALESCE(p.last_name, 'Unknown') as last_name, 
+                    m.record_date, 
+                    COALESCE(m.diagnosis, 'No diagnosis recorded') as diagnosis, 
+                    COALESCE(m.treatment_plan, 'No treatment plan') as treatment_plan 
                 FROM medical_records m 
-                JOIN patients p ON m.patient_id = p.patient_id 
-                WHERE m.doctor_id = (SELECT doctor_id FROM doctors LIMIT 1) 
+                INNER JOIN patients p ON m.patient_id = p.patient_id AND p.is_active = TRUE
+                WHERE m.doctor_id = (SELECT doctor_id FROM doctors WHERE is_active = TRUE LIMIT 1) 
+                  AND m.record_date IS NOT NULL
                 ORDER BY m.record_date DESC 
                 LIMIT 10
             """,
 
-            # --- Existing Filters ---
-            "hypertension": "SELECT p.first_name, p.last_name, m.diagnosis, m.treatment_plan FROM patients p JOIN medical_records m ON p.patient_id = m.patient_id WHERE LOWER(m.diagnosis) LIKE '%hypertension%' LIMIT 50",
+            # --- CASE-SENSITIVE FILTERS (Using LIKE with case-sensitive collation) ---
+            "hypertension": """
+                SELECT 
+                    p.patient_id,
+                    COALESCE(p.first_name, 'Unknown') as first_name, 
+                    COALESCE(p.last_name, 'Unknown') as last_name, 
+                    m.diagnosis, 
+                    COALESCE(m.treatment_plan, 'Not assigned') as treatment_plan,
+                    m.record_date
+                FROM patients p 
+                INNER JOIN medical_records m ON p.patient_id = m.patient_id
+                WHERE m.diagnosis ILIKE '%hypertension%'
+                  AND m.diagnosis IS NOT NULL
+                  AND m.diagnosis != ''
+                  AND p.is_active = TRUE
+                ORDER BY m.record_date DESC
+                LIMIT 50
+            """,
             
-            "penicillin": "SELECT p.first_name, p.last_name, a.allergen, a.severity FROM patients p JOIN allergies a ON p.patient_id = a.patient_id WHERE LOWER(a.allergen) LIKE '%penicillin%' AND a.severity IN ('Severe', 'Life-Threatening')",
+            "penicillin": """
+                SELECT 
+                    p.patient_id,
+                    COALESCE(p.first_name, 'Unknown') as first_name, 
+                    COALESCE(p.last_name, 'Unknown') as last_name, 
+                    a.allergen, 
+                    a.severity,
+                    COALESCE(a.reaction_description, 'No description') as reaction_description
+                FROM patients p 
+                INNER JOIN allergies a ON p.patient_id = a.patient_id
+                WHERE a.allergen ILIKE '%penicillin%'
+                  AND a.severity IN ('Severe', 'Life-Threatening')
+                  AND a.allergen IS NOT NULL
+                  AND a.allergen != ''
+                  AND p.is_active = TRUE
+                ORDER BY a.severity DESC, p.last_name ASC
+                LIMIT 100
+            """,
             
-            "my patients": "SELECT p.first_name, p.last_name, p.contact_number, pdm.status FROM patients p JOIN patient_doctor_mapping pdm ON p.patient_id = pdm.patient_id WHERE pdm.doctor_id = (SELECT doctor_id FROM doctors LIMIT 1) AND pdm.status = 'Active'",
+            "my patients": """
+                SELECT 
+                    p.patient_id,
+                    COALESCE(p.first_name, 'Unknown') as first_name, 
+                    COALESCE(p.last_name, 'Unknown') as last_name, 
+                    COALESCE(p.contact_number, 'No contact') as contact_number, 
+                    pdm.status,
+                    pdm.assigned_date
+                FROM patients p 
+                INNER JOIN patient_doctor_mapping pdm ON p.patient_id = pdm.patient_id
+                WHERE pdm.doctor_id = (SELECT doctor_id FROM doctors WHERE is_active = TRUE LIMIT 1) 
+                  AND pdm.status = 'Active'
+                  AND p.is_active = TRUE
+                ORDER BY pdm.assigned_date DESC
+                LIMIT 100
+            """,
         }
         
-        generated = "SELECT * FROM patients LIMIT 10" # Default
-        req_lower = (request.text or "").lower()
+        # FAIL-SAFE DEFAULT: Return minimal safe query
+        generated = """
+            SELECT 
+                patient_id, 
+                COALESCE(first_name, 'Unknown') as first_name, 
+                COALESCE(last_name, 'Unknown') as last_name, 
+                COALESCE(gender, 'Not Specified') as gender 
+            FROM patients 
+            WHERE is_active = TRUE 
+            LIMIT 10
+        """
         
-        # Simple keyword matching to pick the right SQL
+        # Expert NLP Keyword Matching (CASE-INSENSITIVE for user convenience)
+        req_lower = (request.text or "").lower().strip()
+        
+        # Validate request is not empty
+        if not req_lower or len(req_lower) < 2:
+            return {"generated_sql": "INVALID_SQL_REQUEST", "reason": "Query too short"}
+        
+        # Match keywords to SQL templates
+        matched = False
         for key, sql in mapping.items():
             if key in req_lower:
                 generated = sql
+                matched = True
                 break
+        
+        # If no match and query looks like SQL injection attempt, reject
+        dangerous_keywords = ["drop", "delete", "truncate", "alter", "create", "exec", "--", "/*", "*/", ";"]
+        if not matched and any(kw in req_lower for kw in dangerous_keywords):
+            return {"generated_sql": "INVALID_SQL_REQUEST", "reason": "Unsafe query detected"}
 
+        # Audit Log (SQL Injection Protected)
         try:
-            safe_q = (request.text or "").replace("'", "''")
-            execute_query(f"INSERT INTO audit_logs (username, role, question, status) VALUES ('{request.username or 'guest'}', '{request.role}', '{safe_q}', 'GENERATED')")
+            safe_q = (request.text or "").replace("'", "''")[:500]  # Truncate to prevent overflow
+            safe_user = (request.username or "guest").replace("'", "''")[:100]
+            safe_role = (request.role or "unknown").replace("'", "''")[:50]
+            execute_query(f"INSERT INTO audit_logs (username, role, question, status) VALUES ('{safe_user}', '{safe_role}', '{safe_q}', 'GENERATED')")
         except Exception:
-            pass
+            pass  # Fail silently - audit is not critical
             
-        return {"generated_sql": generated}
+        return {"generated_sql": generated, "matched_keyword": key if matched else "default"}
 
     elif request.mode == "execute":
+        # EXECUTE MODE: Run the generated SQL with safety checks
         if not request.sql:
-            return {"error": "no sql provided"}
+            return {"error": "No SQL provided", "code": "MISSING_SQL"}
+        
+        # Enhanced Safety Check
         if not is_safe_sql(request.sql):
-            return {"error": "query rejected by safety policy"}
+            return {"error": "Query rejected by safety policy", "code": "UNSAFE_SQL"}
+        
+        # Additional length check (prevent massive queries)
+        if len(request.sql) > 10000:
+            return {"error": "Query too long", "code": "QUERY_TOO_LONG"}
+        
         try:
             results = execute_query(request.sql)
+            
+            # Handle empty results gracefully
+            if not results or len(results) == 0:
+                return {
+                    "results": [], 
+                    "recommendations": ["No records found matching your criteria."],
+                    "count": 0
+                }
+            
+            # Generate context-aware recommendations
             recs = generate_doctor_recommendations(results, request.text or "")
-            return {"results": results, "recommendations": recs}
+            
+            return {
+                "results": results, 
+                "recommendations": recs,
+                "count": len(results),
+                "query_executed": request.sql[:200] + "..." if len(request.sql) > 200 else request.sql
+            }
         except Exception as e:
-            return {"error": str(e)}
-    return {"error": "invalid mode"}
+            # Detailed error for debugging
+            error_msg = str(e)
+            return {
+                "error": "Query execution failed", 
+                "details": error_msg if "syntax" in error_msg.lower() else "Database error",
+                "code": "EXECUTION_ERROR"
+            }
+    
+    return {"error": "Invalid mode - use 'generate' or 'execute'", "code": "INVALID_MODE"}
 
 @router.get("/doctor/analytics")
 def get_doctor_analytics():

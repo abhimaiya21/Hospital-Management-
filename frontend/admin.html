@@ -6,208 +6,498 @@
     <title>Admin Console - MediPortal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* RESET & BASE */
+        /* ============================================
+           ROOT VARIABLES & DESIGN SYSTEM
+           ============================================ */
         :root {
-            --primary: #2563eb;
-            --primary-dark: #1e40af;
-            --bg: #f8fafc;
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --primary-dark: #4f46e5;
+            --primary-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --success: #10b981;
+            --success-light: #34d399;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --danger-light: #f87171;
+            --info: #0ea5e9;
+            
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-card: #ffffff;
+            
             --sidebar-bg: #0f172a;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
+            --sidebar-hover: rgba(255, 255, 255, 0.05);
+            --sidebar-active: rgba(99, 102, 241, 0.15);
+            
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 0 40px rgba(99, 102, 241, 0.15);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
+            --transition-slow: 0.4s ease;
         }
 
+        /* ============================================
+           RESET & BASE STYLES
+           ============================================ */
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            margin: 0;
-            display: flex;
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
+        html {
+            scroll-behavior: smooth;
         }
 
-        /* SIDEBAR */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ============================================
+           SIDEBAR NAVIGATION
+           ============================================ */
         .sidebar {
-            width: 260px;
+            width: 280px;
             background: var(--sidebar-bg);
             color: #cbd5e1;
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
-            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
-            z-index: 50;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+            transition: var(--transition-base);
         }
 
         .sidebar-brand {
-            height: 70px;
+            height: 80px;
             display: flex;
             align-items: center;
-            padding: 0 24px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: white;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 14px;
         }
 
-        .sidebar-brand i {
-            margin-right: 12px;
-            color: #60a5fa;
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--primary-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4);
+        }
+
+        .brand-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.02em;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 16px;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            padding: 0 12px;
+            margin-bottom: 10px;
         }
 
         .nav-link {
-            padding: 14px 24px;
-            color: #94a3b8;
-            text-decoration: none;
-            transition: 0.2s;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            padding: 14px 16px;
+            margin: 4px 0;
+            border-radius: var(--radius-md);
+            color: #94a3b8;
+            text-decoration: none;
             font-size: 0.95rem;
             font-weight: 500;
-            border-left: 3px solid transparent;
+            transition: var(--transition-fast);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
         }
 
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
+            background: var(--sidebar-hover);
+            color: #e2e8f0;
         }
 
         .nav-link.active {
-            background: rgba(37, 99, 235, 0.1);
-            color: #60a5fa;
-            border-left-color: #60a5fa;
+            background: var(--sidebar-active);
+            color: var(--primary-light);
+            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.2) inset;
         }
 
         .nav-link i {
-            width: 20px;
+            width: 22px;
+            font-size: 1.1rem;
             text-align: center;
         }
 
-        /* MAIN CONTENT */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            /* ENABLE SCROLLING */
-            position: relative;
-            scroll-behavior: smooth;
+        .nav-badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 3px 8px;
+            border-radius: 20px;
         }
 
-        /* HEADER */
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: var(--transition-fast);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* ============================================
+           MAIN CONTENT AREA
+           ============================================ */
+        .main-wrapper {
+            margin-left: 280px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============================================
+           TOP HEADER BAR
+           ============================================ */
         .top-bar {
-            height: 70px;
-            background: white;
-            border-bottom: 1px solid var(--border);
+            height: 80px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 32px;
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .page-title {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--text-main);
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .action-icon-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            position: relative;
+        }
+
+        .action-icon-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            border: 2px solid white;
         }
 
         .user-profile {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-muted);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            padding: 8px 16px 8px 8px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: var(--transition-fast);
         }
 
-        .badge-admin {
-            background: #f1f5f9;
-            color: #475569;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
+        .user-profile:hover {
+            background: var(--border-color);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-weight: 600;
-            letter-spacing: 0.5px;
-            border: 1px solid #cbd5e1;
+            font-size: 0.875rem;
         }
 
-        /* SCROLLABLE AREA */
-        .scroll-area {
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================
+           SCROLLABLE CONTENT AREA
+           ============================================ */
+        .content-area {
             flex: 1;
             overflow-y: auto;
             padding: 32px;
+            background: var(--bg-primary);
         }
 
-        /* SECTIONS */
+        .content-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ============================================
+           SECTIONS
+           ============================================ */
         .section {
             display: none;
-            animation: fadeIn 0.3s ease-out;
+            animation: fadeInUp 0.4s ease-out;
         }
 
         .section.active {
             display: block;
         }
 
-        @keyframes fadeIn {
+        @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(4px);
+                transform: translateY(20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        /* STATS CARDS */
+        /* ============================================
+           STATS CARDS GRID
+           ============================================ */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 24px;
             margin-bottom: 32px;
         }
 
         .stat-card {
-            background: white;
+            background: var(--bg-card);
             padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
-            transition: transform 0.2s;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            transition: var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
         }
 
         .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
         }
 
-        .stat-card h4 {
-            margin: 0 0 8px;
+        .stat-card.doctors::before { background: linear-gradient(180deg, #6366f1, #8b5cf6); }
+        .stat-card.patients::before { background: linear-gradient(180deg, #10b981, #34d399); }
+        .stat-card.active::before { background: linear-gradient(180deg, #f59e0b, #fbbf24); }
+        .stat-card.revenue::before { background: linear-gradient(180deg, #ef4444, #f87171); }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-card.doctors .stat-icon { background: rgba(99, 102, 241, 0.1); color: #6366f1; }
+        .stat-card.patients .stat-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .stat-card.active .stat-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .stat-card.revenue .stat-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
             font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
         }
 
-        .stat-card .value {
-            font-size: 2rem;
+        .stat-trend.up {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
             font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            line-height: 1;
         }
 
-        /* CHARTS */
+        /* ============================================
+           CHARTS GRID
+           ============================================ */
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -215,28 +505,177 @@
             margin-bottom: 32px;
         }
 
-        .chart-box {
-            background: white;
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
             padding: 24px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            min-height: 340px;
+            transition: var(--transition-base);
         }
 
-        .chart-box h4 {
-            margin: 0 0 20px;
+        .chart-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
             font-size: 1rem;
             font-weight: 600;
-            color: var(--text-main);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* TABLE SECTION */
-        .table-container {
+        .chart-title i {
+            color: var(--primary);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-action-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
             background: white;
-            border-radius: 12px;
-            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .chart-action-btn:hover, .chart-action-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        /* ============================================
+           BOTTOM GRID
+           ============================================ */
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.5fr;
+            gap: 24px;
+        }
+
+        /* Insights Card */
+        .insights-card {
+            background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            color: white;
+            position: relative;
             overflow: hidden;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+        }
+
+        .insights-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .insights-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .insights-header i {
+            width: 44px;
+            height: 44px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: #a5b4fc;
+        }
+
+        .insights-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .insights-subtitle {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .insight-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+            transition: var(--transition-fast);
+            position: relative;
+            z-index: 1;
+        }
+
+        .insight-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(4px);
+        }
+
+        .insight-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .insight-icon {
+            width: 32px;
+            height: 32px;
+            background: rgba(99, 102, 241, 0.2);
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            color: #a5b4fc;
+            font-size: 0.875rem;
+        }
+
+        .insight-text {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+
+        /* ============================================
+           TABLE STYLES
+           ============================================ */
+        .table-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
         }
 
         .table-header {
@@ -244,191 +683,292 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border);
-            background: #f8fafc;
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-secondary);
         }
 
-        .table-header h3 {
-            margin: 0;
-            font-size: 1.1rem;
+        .table-title {
+            font-size: 1rem;
             font-weight: 600;
-            color: var(--text-main);
+            color: var(--text-primary);
             display: flex;
             align-items: center;
             gap: 10px;
         }
 
-        .btn-add {
-            background: var(--primary);
+        .table-title i {
+            color: var(--primary);
+        }
+
+        .table-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .search-input {
+            padding: 10px 14px 10px 40px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            width: 260px;
+            font-size: 0.9rem;
+            outline: none;
+            transition: var(--transition-fast);
+            background: white;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
             color: white;
             border: none;
             padding: 10px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
+            border-radius: var(--radius-md);
+            font-weight: 600;
             font-size: 0.9rem;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
-            transition: 0.2s;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: var(--transition-fast);
+            box-shadow: 0 4px 14px rgba(99, 102, 241, 0.35);
         }
 
-        .btn-add:hover {
-            background: var(--primary-dark);
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
         }
 
-        .search-bar {
-            padding: 10px 16px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            width: 260px;
-            outline: none;
-            transition: 0.2s;
-            font-size: 0.9rem;
+        .btn-primary:active {
+            transform: translateY(0);
         }
-
-        .search-bar:focus {
+        
+        .btn-refresh {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 8px 14px;
+            border-radius: var(--radius-md);
+            font-weight: 500;
+            font-size: 0.85rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: var(--transition-fast);
+        }
+        
+        .btn-refresh:hover {
+            background: var(--primary);
+            color: white;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        
+        .btn-refresh.refreshing i {
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        .refresh-indicator {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-right: 12px;
+        }
+        
+        .refresh-indicator .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
         }
 
         .data-table {
             width: 100%;
-            border-collapse: collapse;
+            border-collapse: separate;
+            border-spacing: 0;
         }
 
         .data-table th {
-            background: #f8fafc;
-            padding: 16px 24px;
+            background: var(--bg-secondary);
+            padding: 16px 20px;
             text-align: left;
-            font-size: 0.75rem;
+            font-size: 0.7rem;
             font-weight: 600;
             text-transform: uppercase;
-            color: var(--text-muted);
-            border-bottom: 1px solid var(--border);
             letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table th:first-child {
+            padding-left: 24px;
+        }
+
+        .data-table th:last-child {
+            padding-right: 24px;
         }
 
         .data-table td {
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.95rem;
-            color: var(--text-main);
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.9rem;
+            color: var(--text-primary);
             vertical-align: middle;
         }
 
-        .data-table tr:hover {
-            background: #f1f5f9;
+        .data-table td:first-child {
+            padding-left: 24px;
+        }
+
+        .data-table td:last-child {
+            padding-right: 24px;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(99, 102, 241, 0.02);
         }
 
         .data-table tr:last-child td {
             border-bottom: none;
         }
 
-        /* BADGES */
+        /* User Cell */
+        .user-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar-sm {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--primary-gradient);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
+        }
+
+        .user-info-sm {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name-sm {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-meta-sm {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Badges */
         .badge {
-            padding: 4px 10px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
             border-radius: 20px;
             font-size: 0.75rem;
             font-weight: 600;
         }
 
-        .badge-blue {
-            background: #eff6ff;
-            color: #2563eb;
-            border: 1px solid #dbeafe;
+        .badge-primary {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary);
         }
 
-        .badge-green {
-            background: #f0fdf4;
-            color: #16a34a;
-            border: 1px solid #dcfce7;
+        .badge-success {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
         }
 
-        /* ACTION BUTTONS */
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .badge-info {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--info);
+        }
+
+        /* Action Buttons */
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
         .action-btn {
             width: 34px;
             height: 34px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            display: inline-flex;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            display: flex;
             align-items: center;
             justify-content: center;
-            margin-right: 6px;
-            transition: 0.2s;
+            cursor: pointer;
+            transition: var(--transition-fast);
         }
 
-        .btn-edit {
-            background: white;
-            border: 1px solid #cbd5e1;
-            color: #475569;
+        .action-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(99, 102, 241, 0.05);
         }
 
-        .btn-edit:hover {
-            border-color: #94a3b8;
-            background: #f8fafc;
-            color: #0f172a;
+        .action-btn.delete:hover {
+            border-color: var(--danger);
+            color: var(--danger);
+            background: rgba(239, 68, 68, 0.05);
         }
 
-        .btn-delete {
-            background: white;
-            border: 1px solid #fecaca;
-            color: #ef4444;
-        }
-
-        .btn-delete:hover {
-            background: #fef2f2;
-            border-color: #fca5a5;
-        }
-
-        /* BOTTOM ROW */
-        .bottom-grid {
-            display: grid;
-            grid-template-columns: 1fr 1.5fr;
-            gap: 24px;
-            margin-top: 24px;
-        }
-
-        .insights-box {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
-            color: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .insight-item {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 12px 16px;
-            margin-bottom: 12px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            border-left: 3px solid #60a5fa;
-            line-height: 1.5;
-        }
-
-        .insight-item i {
-            margin-top: 3px;
-            color: #93c5fd;
-        }
-
-        .status-blocked {
-            color: #ef4444;
-            font-weight: 600;
-            background: #fef2f2;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            border: 1px solid #fee2e2;
-        }
-
-        /* MODAL */
-        .modal {
+        /* ============================================
+           MODAL STYLES
+           ============================================ */
+        .modal-overlay {
             display: none;
             position: fixed;
             top: 0;
@@ -436,205 +976,703 @@
             width: 100%;
             height: 100%;
             background: rgba(15, 23, 42, 0.6);
-            backdrop-filter: blur(4px);
+            backdrop-filter: blur(8px);
             align-items: center;
             justify-content: center;
             z-index: 1000;
-            animation: fadeIn 0.2s;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
         }
 
         .modal-content {
-            background: white;
-            padding: 32px;
-            border-radius: 16px;
-            width: 480px;
-            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-            transform: scale(0.95);
-            animation: scaleIn 0.2s forwards;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            width: 520px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-xl), var(--shadow-glow);
+            animation: modalSlideUp 0.3s ease;
         }
 
-        @keyframes scaleIn {
+        @keyframes modalSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px) scale(0.95);
+            }
             to {
-                transform: scale(1);
+                opacity: 1;
+                transform: translateY(0) scale(1);
             }
         }
 
-        .form-group {
-            margin-bottom: 20px;
+        .modal-header {
+            padding: 24px 28px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
 
-        .form-group label {
+        .modal-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-md);
+            border: none;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .modal-close:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 28px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 0;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
             display: block;
             margin-bottom: 8px;
+            font-size: 0.875rem;
             font-weight: 500;
-            font-size: 0.9rem;
-            color: #334155;
+            color: var(--text-primary);
         }
 
-        .form-group input {
+        .form-input, .form-select {
             width: 100%;
-            padding: 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
-            outline: none;
-            transition: 0.2s;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
             font-size: 0.95rem;
-            font-family: 'Inter', sans-serif;
+            outline: none;
+            transition: var(--transition-fast);
+            background: white;
+            font-family: inherit;
         }
 
-        .form-group input:focus {
+        .form-input:focus, .form-select:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .form-select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%2364748b' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14L2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 40px;
+        }
+
+        .modal-footer {
+            padding: 20px 28px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .btn-secondary {
+            padding: 12px 24px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        .btn-success {
+            padding: 12px 24px;
+            border: none;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+        }
+
+        /* ============================================
+           RESPONSIVE STYLES
+           ============================================ */
+        @media (max-width: 1280px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .bottom-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar-brand .brand-text,
+            .nav-section-title,
+            .nav-link span,
+            .logout-btn span {
+                display: none;
+            }
+            
+            .sidebar-brand {
+                justify-content: center;
+                padding: 0;
+            }
+            
+            .nav-link {
+                justify-content: center;
+                padding: 16px;
+            }
+            
+            .nav-link i {
+                width: auto;
+                font-size: 1.25rem;
+            }
+            
+            .logout-btn {
+                justify-content: center;
+                padding: 16px;
+            }
+            
+            .main-wrapper {
+                margin-left: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .top-bar {
+                padding: 0 20px;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .table-header {
+                flex-direction: column;
+                gap: 16px;
+                align-items: flex-start;
+            }
+            
+            .table-actions {
+                width: 100%;
+                flex-direction: column;
+            }
+            
+            .search-input {
+                width: 100%;
+            }
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+        .text-muted { color: var(--text-muted); }
+        .text-secondary { color: var(--text-secondary); }
+        .text-primary { color: var(--text-primary); }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+        .text-warning { color: var(--warning); }
+
+        .status-blocked {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        .status-blocked::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            background: var(--danger);
+            border-radius: 50%;
+        }
+
+        /* Loading Animation */
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
         }
     </style>
+<base target="_blank">
 </head>
 
 <body>
-
+    <!-- ============================================
+         SIDEBAR NAVIGATION
+         ============================================ -->
     <nav class="sidebar">
-        <div class="sidebar-brand"><i class="fa-solid fa-hospital-user"></i> AdminPanel</div>
-        <a class="nav-link active" onclick="showSection('dashboard', this)"><i class="fa-solid fa-chart-pie"></i>
-            Dashboard</a>
-        <a class="nav-link" onclick="showSection('doctors', this)"><i class="fa-solid fa-user-doctor"></i> Manage
-            Doctors</a>
-        <a class="nav-link" onclick="showSection('patients', this)"><i class="fa-solid fa-bed-pulse"></i> Manage
-            Patients</a>
-        <div style="flex-grow:1"></div>
-        <a class="nav-link" onclick="logout()" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Sign
-            Out</a>
-    </nav>
-
-    <div class="main-content">
-        <div class="top-bar">
-            <div class="page-title">Admin Console</div>
-            <div class="user-profile">
-                Welcome, <span id="uName">admin</span>
-                <span class="badge-admin">ADMIN</span>
+        <div class="sidebar-brand">
+            <div class="brand-icon">
+                <i class="fa-solid fa-hospital-user"></i>
+            </div>
+            <span class="brand-text">MediPortal</span>
+        </div>
+        
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <button class="nav-link active" onclick="showSection('dashboard', this)">
+                    <i class="fa-solid fa-chart-pie"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-link" onclick="showSection('doctors', this)">
+                    <i class="fa-solid fa-user-doctor"></i>
+                    <span>Manage Doctors</span>
+                </button>
+                <button class="nav-link" onclick="showSection('patients', this)">
+                    <i class="fa-solid fa-bed-pulse"></i>
+                    <span>Manage Patients</span>
+                    <span class="nav-badge">New</span>
+                </button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">System</div>
+                <button class="nav-link">
+                    <i class="fa-solid fa-gear"></i>
+                    <span>Settings</span>
+                </button>
+                <button class="nav-link">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span>Reports</span>
+                </button>
             </div>
         </div>
+        
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </nav>
 
-        <div id="sec-dashboard" class="section active">
-            <div class="stats-grid" id="statsGrid"></div>
+    <!-- ============================================
+         MAIN CONTENT WRAPPER
+         ============================================ -->
+    <div class="main-wrapper">
+        <!-- Top Header Bar -->
+        <header class="top-bar">
+            <div class="page-title-area">
+                <h1 class="page-title">Admin Console</h1>
+                <span class="page-subtitle">Welcome back, manage your hospital operations</span>
+            </div>
+            
+            <div class="top-bar-actions">
+                <button class="action-icon-btn">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button>
+                <button class="action-icon-btn">
+                    <i class="fa-regular fa-envelope"></i>
+                </button>
+                <div class="user-profile">
+                    <div class="user-avatar" id="userAvatar">A</div>
+                    <div class="user-info">
+                        <span class="user-name" id="uName">Admin</span>
+                        <span class="user-role">Administrator</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+                </div>
+            </div>
+        </header>
 
-            <div class="charts-grid">
-                <div class="chart-box">
-                    <h4>📈 Patient Growth Trend</h4>
-                    <canvas id="chartTrend"></canvas>
+        <!-- Scrollable Content Area -->
+        <main class="content-area">
+            <!-- ============================================
+                 DASHBOARD SECTION
+                 ============================================ -->
+            <div id="sec-dashboard" class="section active">
+                <!-- Stats Grid -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card doctors">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fa-solid fa-user-doctor"></i>
+                            </div>
+                            <span class="stat-trend up">
+                                <i class="fa-solid fa-arrow-trend-up"></i> 12%
+                            </span>
+                        </div>
+                        <div class="stat-label">Total Doctors</div>
+                        <div class="stat-value" id="statDoctors">--</div>
+                    </div>
+                    
+                    <div class="stat-card patients">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fa-solid fa-bed-pulse"></i>
+                            </div>
+                            <span class="stat-trend up">
+                                <i class="fa-solid fa-arrow-trend-up"></i> 8%
+                            </span>
+                        </div>
+                        <div class="stat-label">Total Patients</div>
+                        <div class="stat-value" id="statPatients">--</div>
+                    </div>
+                    
+                    <div class="stat-card active">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </div>
+                            <span class="stat-trend down">
+                                <i class="fa-solid fa-arrow-trend-down"></i> 3%
+                            </span>
+                        </div>
+                        <div class="stat-label">Active Today</div>
+                        <div class="stat-value" id="statActive">--</div>
+                    </div>
+                    
+                    <div class="stat-card revenue">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fa-solid fa-dollar-sign"></i>
+                            </div>
+                            <span class="stat-trend up">
+                                <i class="fa-solid fa-arrow-trend-up"></i> 24%
+                            </span>
+                        </div>
+                        <div class="stat-label">Revenue</div>
+                        <div class="stat-value">$48.2K</div>
+                    </div>
                 </div>
-                <div class="chart-box">
-                    <h4>🏥 Department Load</h4>
-                    <canvas id="chartDept"></canvas>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">
+                                <i class="fa-solid fa-chart-line"></i>
+                                Patient Growth Trend
+                            </h4>
+                            <div class="chart-actions">
+                                <button class="chart-action-btn active">Week</button>
+                                <button class="chart-action-btn">Month</button>
+                                <button class="chart-action-btn">Year</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartTrend"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">
+                                <i class="fa-solid fa-building"></i>
+                                Department Load
+                            </h4>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartDept"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">
+                                <i class="fa-solid fa-robot"></i>
+                                System Usage (AI Queries)
+                            </h4>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartUsage"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">
+                                <i class="fa-solid fa-users"></i>
+                                Role Distribution
+                            </h4>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartRoles"></canvas>
+                        </div>
+                    </div>
                 </div>
-                <div class="chart-box">
-                    <h4>🤖 System Usage (AI Queries)</h4>
-                    <canvas id="chartUsage"></canvas>
-                </div>
-                <div class="chart-box">
-                    <h4>👥 Role Distribution</h4>
-                    <canvas id="chartRoles"></canvas>
+
+                <!-- Bottom Grid -->
+                <div class="bottom-grid">
+                    <!-- AI Insights Card -->
+                    <div class="insights-card">
+                        <div class="insights-header">
+                            <i class="fa-solid fa-brain"></i>
+                            <div>
+                                <div class="insights-title">AI Insights</div>
+                                <div class="insights-subtitle">Powered by MediPortal AI</div>
+                            </div>
+                        </div>
+                        <div id="insightsList">
+                            <div class="insight-item">
+                                <div class="insight-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                                <div class="insight-text">Loading insights...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Audit Table -->
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3 class="table-title">
+                                <i class="fa-solid fa-shield-halved"></i>
+                                Security & Audit Summary
+                            </h3>
+                        </div>
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Query Attempt</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="securityTableBody">
+                                <tr>
+                                    <td colspan="4" class="empty-state">
+                                        <i class="fa-solid fa-spinner fa-spin"></i>
+                                        <p>Loading security logs...</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
 
-            <div class="bottom-grid">
-                <div class="insights-box">
-                    <h3 style="margin-top:0"><i class="fa-solid fa-brain"></i> Admin Insights</h3>
-                    <div id="insightsList"></div>
-                </div>
-                <div class="table-container">
+            <!-- ============================================
+                 DOCTORS SECTION
+                 ============================================ -->
+            <div id="sec-doctors" class="section">
+                <div class="table-card">
                     <div class="table-header">
-                        <h3>🛡️ Security & Audit Summary</h3>
+                        <h3 class="table-title">
+                            <i class="fa-solid fa-user-doctor"></i>
+                            Manage Doctors
+                        </h3>
+                        <div class="table-actions">
+                            <div class="refresh-indicator">
+                                <span class="dot"></span>
+                                <span id="docRefreshTime">Auto-refresh active</span>
+                            </div>
+                            <button class="btn-refresh" onclick="refreshDoctors()" id="refreshDocBtn" title="Refresh Now">
+                                <i class="fa-solid fa-rotate"></i>
+                            </button>
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" class="search-input" placeholder="Search doctors..." 
+                                    onkeyup="filterTable('docTable', doctorsList, this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('Doctor')">
+                                <i class="fa-solid fa-plus"></i>
+                                Add Doctor
+                            </button>
+                        </div>
                     </div>
                     <table class="data-table">
                         <thead>
                             <tr>
-                                <th>User</th>
-                                <th>Query Attempt</th>
-                                <th>Status</th>
-                                <th>Time</th>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Specialty</th>
+                                <th>Contact</th>
+                                <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="securityTableBody"></tbody>
+                        <tbody id="docTable">
+                            <tr>
+                                <td colspan="5" class="empty-state">
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                    <p>Loading doctors...</p>
+                                </td>
+                            </tr>
+                        </tbody>
                     </table>
                 </div>
             </div>
-        </div>
 
-        <div id="sec-doctors" class="section">
-            <div class="table-container">
-                <div class="table-header">
-                    <h3>👨‍⚕️ Manage Doctors</h3>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" class="search-bar" placeholder="Search doctors..."
-                            onkeyup="filterTable('docTable', doctorsList, this.value)">
-                        <button class="btn-add" onclick="openModal('Doctor')"><i class="fa-solid fa-plus"></i> Add
-                            Doctor</button>
+            <!-- ============================================
+                 PATIENTS SECTION
+                 ============================================ -->
+            <div id="sec-patients" class="section">
+                <div class="table-card">
+                    <div class="table-header">
+                        <h3 class="table-title">
+                            <i class="fa-solid fa-bed-pulse"></i>
+                            Manage Patients
+                        </h3>
+                        <div class="table-actions">
+                            <div class="refresh-indicator">
+                                <span class="dot"></span>
+                                <span id="patRefreshTime">Auto-refresh active</span>
+                            </div>
+                            <button class="btn-refresh" onclick="refreshPatients()" id="refreshPatBtn" title="Refresh Now">
+                                <i class="fa-solid fa-rotate"></i>
+                            </button>
+                            <div class="search-box">
+                                <i class="fa-solid fa-magnifying-glass"></i>
+                                <input type="text" class="search-input" placeholder="Search patients..." 
+                                    onkeyup="filterTable('patTable', patientsList, this.value)">
+                            </div>
+                            <button class="btn-primary" onclick="openModal('Patient')">
+                                <i class="fa-solid fa-plus"></i>
+                                Add Patient
+                            </button>
+                        </div>
                     </div>
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Patient Name</th>
+                                <th>Age / Gender</th>
+                                <th>Assigned Doctor</th>
+                                <th>Room No</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="patTable">
+                            <tr>
+                                <td colspan="7" class="empty-state">
+                                    <i class="fa-solid fa-spinner fa-spin"></i>
+                                    <p>Loading patients...</p>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Specialty</th>
-                            <th>Contact / Email</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="docTable"></tbody>
-                </table>
             </div>
-        </div>
-
-        <div id="sec-patients" class="section">
-            <div class="table-container">
-                <div class="table-header">
-                    <h3>🛌 Manage Patients</h3>
-                    <div style="display:flex; gap:10px;">
-                        <input type="text" class="search-bar" placeholder="Search patients..."
-                            onkeyup="filterTable('patTable', patientsList, this.value)">
-                        <button class="btn-add" onclick="openModal('Patient')"><i class="fa-solid fa-plus"></i> Add
-                            Patient</button>
-                    </div>
-                </div>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Serial No</th>
-                            <th>Patient Name</th>
-                            <th>Age / Gender</th>
-                            <th>Assigned Doctor</th>
-                            <th>Room No</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="patTable"></tbody>
-                </table>
-            </div>
-        </div>
+        </main>
     </div>
 
-    <div id="crudModal" class="modal">
+    <!-- ============================================
+         MODAL
+         ============================================ -->
+    <div id="crudModal" class="modal-overlay">
         <div class="modal-content">
-            <h3 id="modalTitle" style="margin-top:0; margin-bottom:20px; color:#111827;">Add New</h3>
-            <div id="modalInputs"></div>
-            <div style="text-align:right; margin-top:25px;">
-                <button onclick="closeModal()"
-                    style="padding:10px 20px; border:none; background:#e5e7eb; border-radius:6px; cursor:pointer; margin-right:10px; font-weight:600; color:#374151;">Cancel</button>
-                <button id="saveBtn" onclick="saveEntity()"
-                    style="padding:10px 20px; border:none; background:#10b981; color:white; border-radius:6px; cursor:pointer; font-weight:600;">Save
-                    Changes</button>
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Add New</h3>
+                <button class="modal-close" onclick="closeModal()">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div id="modalInputs" class="form-grid"></div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn-success" id="saveBtn" onclick="saveEntity()">
+                    <i class="fa-solid fa-check" style="margin-right: 8px;"></i>
+                    Save Changes
+                </button>
             </div>
         </div>
     </div>
 
+    <!-- ============================================
+         JAVASCRIPT
+         ============================================ -->
     <script>
         // --- AUTH CHECK ---
         const user = sessionStorage.getItem("hospitalUser");
         if (sessionStorage.getItem("hospitalRole") !== 'admin') window.location.href = "index.html";
-        document.getElementById("uName").innerText = user;
+        document.getElementById("uName").innerText = user || 'Admin';
+        document.getElementById("userAvatar").innerText = (user || 'A').charAt(0).toUpperCase();
 
-        // --- STATE VARIABLES ---
         // --- STATE VARIABLES ---
         let doctorsList = [], patientsList = [], departmentsList = [];
         let currentType = "", isEditing = false, editId = null;
@@ -642,6 +1680,77 @@
 
         // --- INIT ---
         loadData();
+        
+        // --- AUTO-REFRESH (Every 30 seconds) ---
+        let autoRefreshInterval = null;
+        const AUTO_REFRESH_MS = 30000; // 30 seconds
+        
+        function startAutoRefresh() {
+            if (autoRefreshInterval) return;
+            autoRefreshInterval = setInterval(async () => {
+                console.log('[Auto-Refresh] Updating dashboard...');
+                await Promise.all([loadStats(), loadDoctors(), loadPatients()]);
+                updateRefreshTimestamps();
+            }, AUTO_REFRESH_MS);
+            console.log('[Auto-Refresh] Started - updating every 30 seconds');
+        }
+        
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+                console.log('[Auto-Refresh] Stopped');
+            }
+        }
+        
+        // Start auto-refresh when page loads
+        startAutoRefresh();
+        
+        // Stop auto-refresh when page is hidden (tab switch)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else {
+                loadData(); // Refresh immediately when tab becomes visible
+                startAutoRefresh();
+            }
+        });
+        
+        // Manual refresh functions with visual feedback
+        async function refreshDoctors() {
+            const btn = document.getElementById('refreshDocBtn');
+            const timeEl = document.getElementById('docRefreshTime');
+            btn.classList.add('refreshing');
+            btn.disabled = true;
+            
+            await loadDoctors();
+            
+            btn.classList.remove('refreshing');
+            btn.disabled = false;
+            timeEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
+        }
+        
+        async function refreshPatients() {
+            const btn = document.getElementById('refreshPatBtn');
+            const timeEl = document.getElementById('patRefreshTime');
+            btn.classList.add('refreshing');
+            btn.disabled = true;
+            
+            await loadPatients();
+            
+            btn.classList.remove('refreshing');
+            btn.disabled = false;
+            timeEl.textContent = 'Updated ' + new Date().toLocaleTimeString();
+        }
+        
+        // Update timestamp after auto-refresh
+        function updateRefreshTimestamps() {
+            const time = new Date().toLocaleTimeString();
+            const docEl = document.getElementById('docRefreshTime');
+            const patEl = document.getElementById('patRefreshTime');
+            if (docEl) docEl.textContent = 'Updated ' + time;
+            if (patEl) patEl.textContent = 'Updated ' + time;
+        }
 
         function showSection(id, el) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
@@ -656,39 +1765,74 @@
 
         async function loadStats() {
             try {
-                // Check if Chart.js loaded
                 if (typeof Chart === 'undefined') {
-                    document.getElementById("statsGrid").innerHTML = "<div style='color:red'>Charts failed to load.</div>";
+                    document.getElementById("statsGrid").innerHTML = "<div style='color:red; padding: 20px;'>Charts failed to load.</div>";
                     return;
                 }
 
-                // Add timestamp to prevent caching
-                const res = await fetch("http://127.0.0.1:8000/admin/analytics?t=" + Date.now());
+                const res = await fetch("http://127.0.0.1:8000/api/v1/admin/analytics?t=" + Date.now());
                 if (!res.ok) throw new Error(`API Error: ${res.statusText}`);
                 const data = await res.json();
 
                 // 1. Stats Grid
                 if (data.counts) {
-                    document.getElementById("statsGrid").innerHTML = `
-                            <div class="stat-card" style="border-left-color:#3b82f6"><h4>Total Doctors</h4><div class="value">${data.counts.doctors}</div></div>
-                            <div class="stat-card" style="border-left-color:#f59e0b"><h4>Total Patients</h4><div class="value">${data.counts.patients}</div></div>
-                            <div class="stat-card" style="border-left-color:#8b5cf6"><h4>Active Today</h4><div class="value">${data.summary.active_today || 0}</div></div>
-                        `;
+                    document.getElementById("statDoctors").textContent = data.counts.doctors || 0;
+                    document.getElementById("statPatients").textContent = data.counts.patients || 0;
+                    document.getElementById("statActive").textContent = data.summary?.active_today || 0;
                 }
 
                 // 2. Charts
-                renderChart('chartTrend', 'line', data.trend.labels, [{ label: 'Growth', data: data.trend.data, borderColor: '#3b82f6', tension: 0.4 }]);
-                renderChart('chartDept', 'bar', Object.keys(data.departments), [{ label: 'Load', data: Object.values(data.departments), backgroundColor: '#10b981' }], { indexAxis: 'y' });
-                renderChart('chartUsage', 'bar', Object.keys(data.usage), [{ label: 'Queries', data: Object.values(data.usage), backgroundColor: '#8b5cf6' }]);
-                renderChart('chartRoles', 'doughnut', Object.keys(data.roles), [{ data: Object.values(data.roles), backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#64748b'] }]);
+                renderChart('chartTrend', 'line', data.trend?.labels || [], [
+                    { label: 'Growth', data: data.trend?.data || [], borderColor: '#6366f1', backgroundColor: 'rgba(99, 102, 241, 0.1)', tension: 0.4, fill: true }
+                ]);
+                
+                renderChart('chartDept', 'bar', Object.keys(data.departments || {}), [
+                    { label: 'Load', data: Object.values(data.departments || {}), backgroundColor: ['#6366f1', '#8b5cf6', '#a855f7', '#d946ef', '#ec4899'] }
+                ], { indexAxis: 'y' });
+                
+                renderChart('chartUsage', 'bar', Object.keys(data.usage || {}), [
+                    { label: 'Queries', data: Object.values(data.usage || {}), backgroundColor: '#10b981', borderRadius: 6 }
+                ]);
+                
+                renderChart('chartRoles', 'doughnut', Object.keys(data.roles || {}), [
+                    { data: Object.values(data.roles || {}), backgroundColor: ['#6366f1', '#10b981', '#f59e0b', '#64748b'], borderWidth: 0 }
+                ]);
 
                 // 3. Insights
-                document.getElementById("insightsList").innerHTML = data.insights.map(i => `<div class="insight-item"><i class="fa-solid fa-lightbulb"></i> ${i}</div>`).join('');
+                if (data.insights && data.insights.length > 0) {
+                    document.getElementById("insightsList").innerHTML = data.insights.map(i => `
+                        <div class="insight-item">
+                            <div class="insight-icon"><i class="fa-solid fa-lightbulb"></i></div>
+                            <div class="insight-text">${i}</div>
+                        </div>
+                    `).join('');
+                }
 
                 // 4. Security Logs
-                document.getElementById("securityTableBody").innerHTML = data.security.map(s => `
-                    <tr><td><b>${s.username}</b></td><td>${s.question}</td><td><span class="status-blocked">${s.status}</span></td><td>${new Date(s.timestamp).toLocaleTimeString()}</td></tr>
-                `).join('');
+                if (data.security && data.security.length > 0) {
+                    document.getElementById("securityTableBody").innerHTML = data.security.map(s => `
+                        <tr>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-sm">${s.username?.charAt(0).toUpperCase() || 'U'}</div>
+                                    <span style="font-weight: 600;">${s.username}</span>
+                                </div>
+                            </td>
+                            <td>${s.question}</td>
+                            <td><span class="status-blocked">${s.status}</span></td>
+                            <td style="color: var(--text-muted); font-size: 0.85rem;">${new Date(s.timestamp).toLocaleTimeString()}</td>
+                        </tr>
+                    `).join('');
+                } else {
+                    document.getElementById("securityTableBody").innerHTML = `
+                        <tr>
+                            <td colspan="4" class="empty-state">
+                                <i class="fa-solid fa-shield-check"></i>
+                                <p>No security alerts today</p>
+                            </td>
+                        </tr>
+                    `;
+                }
 
             } catch (e) {
                 console.error("Stats Load Failed:", e);
@@ -697,30 +1841,65 @@
 
         async function loadDoctors() {
             try {
-                const dRes = await fetch("http://127.0.0.1:8000/admin/doctors");
+                 const dRes = await fetch("http://127.0.0.1:8000/api/v1/admin/doctors");
                 doctorsList = await dRes.json();
                 renderTable("docTable", doctorsList, "doctor");
-            } catch (e) { console.error("Docs Load Failed", e); }
+            } catch (e) { 
+                console.error("Docs Load Failed", e);
+                document.getElementById("docTable").innerHTML = `
+                    <tr><td colspan="5" class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Failed to load doctors</p></td></tr>
+                `;
+            }
         }
 
         async function loadPatients() {
             try {
-                const pRes = await fetch("http://127.0.0.1:8000/admin/patients");
+                 const pRes = await fetch("http://127.0.0.1:8000/api/v1/admin/patients");
                 patientsList = await pRes.json();
                 renderTable("patTable", patientsList, "patient");
-            } catch (e) { console.error("Patients Load Failed", e); }
+            } catch (e) { 
+                console.error("Patients Load Failed", e);
+                document.getElementById("patTable").innerHTML = `
+                    <tr><td colspan="7" class="empty-state"><i class="fa-solid fa-triangle-exclamation"></i><p>Failed to load patients</p></td></tr>
+                `;
+            }
         }
 
         async function loadDepartments() {
             try {
-                const res = await fetch("http://127.0.0.1:8000/admin/departments");
+                 const res = await fetch("http://127.0.0.1:8000/api/v1/admin/departments");
                 departmentsList = await res.json();
-            } catch (e) { console.error("Departments Load Failed", e); }
+            } catch (e) { 
+                console.error("Departments Load Failed", e);
+            }
         }
 
         function renderChart(id, type, labels, datasets, options = {}) {
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            
             if (chartInstances[id]) chartInstances[id].destroy();
-            chartInstances[id] = new Chart(document.getElementById(id), { type, data: { labels, datasets }, options });
+            
+            chartInstances[id] = new Chart(ctx, {
+                type,
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: type === 'doughnut',
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true }
+                        }
+                    },
+                    scales: type !== 'doughnut' ? {
+                        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } }
+                    } : {},
+                    ...options
+                }
+            });
         }
 
         function renderTable(id, data, type) {
@@ -728,63 +1907,93 @@
             if (!tbody) return;
             tbody.innerHTML = "";
 
-            if (!data || !Array.isArray(data)) {
-                // If not an array, do not render.
-                console.error("renderTable: Data is not an array or is empty", data);
+            if (!data || !Array.isArray(data) || data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="${type === 'doctor' ? 5 : 7}" class="empty-state">
+                            <i class="fa-solid fa-inbox"></i>
+                            <p>No ${type}s found</p>
+                        </td>
+                    </tr>
+                `;
                 return;
             }
-            // Debug Log
-            console.log(`Rendering ${type} table with ${data.length} items.`);
 
             data.forEach(item => {
                 if (!item) return;
                 try {
                     const dataStr = JSON.stringify(item).replace(/'/g, "&#39;");
                     let row = "";
+                    
                     if (type === 'doctor') {
-                        const phone = item.phone_contact || '';
-                        const email = item.email || '';
-                        row = `<td>#${item.doctor_id}</td>
-                               <td style="font-weight:600">${item.first_name} ${item.last_name}</td>
-                               <td><span class="badge badge-blue">${item.specialty}</span></td>
-                               <td>${phone}<br><small>${email}</small></td>`;
+                        const phone = item.phone_contact || '-';
+                        const email = item.email || '-';
+                        row = `
+                            <td><span class="badge badge-info">#${item.doctor_id}</span></td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-sm">${item.first_name?.charAt(0) || 'D'}</div>
+                                    <span class="user-name-sm">Dr. ${item.first_name} ${item.last_name}</span>
+                                </div>
+                            </td>
+                            <td><span class="badge badge-primary">${item.specialty}</span></td>
+                            <td style="font-size: 0.85rem; color: var(--text-secondary);">
+                                <div><i class="fa-solid fa-phone" style="margin-right: 6px;"></i>${phone}</div>
+                                <div style="margin-top: 4px;"><i class="fa-solid fa-envelope" style="margin-right: 6px;"></i>${email}</div>
+                            </td>
+                        `;
                     } else {
-                        // Patient - Use STRICT backend keys
                         const pid = item.patient_id;
                         const pName = `${item.first_name} ${item.last_name}`;
-                        const ageDate = item.age ? `${item.age} yrs` : '-';
+                        const age = item.age ? `${item.age} yrs` : '-';
                         const gender = item.gender || '-';
-
-                        // Handle Doctor Name (Joined fields)
-                        let docDisplay = '<span style="color:#9ca3af; font-style:italic">Unassigned</span>';
-                        if (item.doc_first && item.doc_last) {
-                            docDisplay = `Dr. ${item.doc_first} ${item.doc_last}`;
-                        } else if (item.doctor_id) {
-                            // Fallback if ID exists but join name missing (shouldn't happen with correct join)
-                            docDisplay = `ID: ${item.doctor_id}`;
+                        
+                        // Use assigned_doctor from the SQL query (combined name)
+                        let docDisplay = '<span style="color: var(--text-muted); font-style: italic;">Unassigned</span>';
+                        if (item.assigned_doctor && item.assigned_doctor !== 'Unassigned') {
+                            docDisplay = `Dr. ${item.assigned_doctor}`;
                         }
 
-                        const room = item.room_number || 'Waiting';
-                        const status = item.status || 'Admitted';
+                        // Use room_no from the SQL query
+                        const room = item.room_no || 'Waiting';
+                        const status = item.status || 'Registered';
 
-                        // Status Badge Logic
-                        let badgeClass = 'badge-blue';
-                        if (status === 'Admitted') badgeClass = 'badge-green';
-                        else if (status === 'Critical') badgeClass = 'status-blocked';
-                        else if (status === 'Discharged') badgeClass = 'badge-gray';
+                        let badgeClass = 'badge-primary';
+                        if (status === 'Admitted' || status === 'Scheduled') badgeClass = 'badge-success';
+                        else if (status === 'Critical' || status === 'Emergency') badgeClass = 'badge-danger';
+                        else if (status === 'Discharged' || status === 'Completed') badgeClass = 'badge-warning';
+                        else if (status === 'Under Observation' || status === 'Registered') badgeClass = 'badge-info';
 
-                        row = `<td>#${pid}</td>
-                            <td style="font-weight:600">${pName}</td>
-                            <td>${ageDate} / ${gender}</td>
-                            <td>${docDisplay}</td>
-                            <td>${room}</td>
-                            <td><span class="badge ${badgeClass}">${status}</span></td>`;
+                        row = `
+                            <td><span class="badge badge-info">#${pid}</span></td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-sm" style="background: linear-gradient(135deg, #10b981, #059669);">${item.first_name?.charAt(0) || 'P'}</div>
+                                    <span class="user-name-sm">${pName}</span>
+                                </div>
+                            </td>
+                            <td style="color: var(--text-secondary);">${age} / ${gender}</td>
+                            <td style="font-size: 0.9rem;">${docDisplay}</td>
+                            <td><span class="badge badge-warning">${room}</span></td>
+                            <td><span class="badge ${badgeClass}">${status}</span></td>
+                        `;
                     }
 
-                    tbody.innerHTML += `<tr>${row}<td>
-                        <button class="action-btn btn-edit" onclick='editItem("${type}", ${dataStr})'><i class="fa-solid fa-pen"></i></button>
-                        <button class="action-btn btn-delete" onclick='deleteItem("${type === 'doctor' ? 'doctors' : 'patients'}", ${type === 'doctor' ? item.doctor_id : item.patient_id})'><i class="fa-solid fa-trash"></i></button>
-                    </td></tr>`;
+                    tbody.innerHTML += `
+                        <tr>
+                            ${row}
+                            <td>
+                                <div class="action-btns">
+                                    <button class="action-btn" onclick='editItem("${type}", ${dataStr})' title="Edit">
+                                        <i class="fa-solid fa-pen"></i>
+                                    </button>
+                                    <button class="action-btn delete" onclick='deleteItem("${type === 'doctor' ? 'doctors' : 'patients'}", ${type === 'doctor' ? item.doctor_id : item.patient_id})' title="Delete">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    `;
                 } catch (err) {
                     console.error("Row Render Error", err, item);
                 }
@@ -792,62 +2001,128 @@
         }
 
         function filterTable(id, list, query) {
-            const filtered = list.filter(i => (i.first_name + " " + i.last_name).toLowerCase().includes(query.toLowerCase()));
+            const filtered = list.filter(i => 
+                (i.first_name + " " + i.last_name).toLowerCase().includes(query.toLowerCase())
+            );
             renderTable(id, filtered, id === 'docTable' ? 'doctor' : 'patient');
         }
 
         function openModal(type) {
-            currentType = type; isEditing = false; editId = null;
-            document.getElementById('crudModal').style.display = 'flex';
+            currentType = type;
+            isEditing = false;
+            editId = null;
+            
+            document.getElementById('crudModal').classList.add('active');
             document.getElementById('modalTitle').innerText = "Add New " + type;
 
             if (type === 'Doctor') {
                 const fields = [
-                    { id: 'first_name', label: 'First Name', type: 'text' },
-                    { id: 'last_name', label: 'Last Name', type: 'text' },
-                    { id: 'specialty', label: 'Specialty', type: 'text' },
-                    { id: 'email', label: 'Email', type: 'text' },
-                    { id: 'phone_contact', label: 'Phone', type: 'text' }
+                    { id: 'first_name', label: 'First Name', type: 'text', half: true },
+                    { id: 'last_name', label: 'Last Name', type: 'text', half: true },
+                    { id: 'specialty', label: 'Specialty', type: 'text', half: true },
+                    { id: 'email', label: 'Email', type: 'email', half: true },
+                    { id: 'phone_contact', label: 'Phone Number', type: 'tel', half: true }
                 ];
-                let html = fields.map(f => `<div class="form-group"><label>${f.label}</label><input id="${f.id}" autocomplete="off"></div>`).join('');
+                
+                let html = fields.map(f => `
+                    <div class="form-group ${f.half ? '' : 'full-width'}">
+                        <label class="form-label">${f.label}</label>
+                        <input type="${f.type}" id="${f.id}" class="form-input" autocomplete="off">
+                    </div>
+                `).join('');
 
-                // Add Department Select
-                html += `<div class="form-group"><label>Department</label>
-                    <select id="department_id" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; outline:none;">
-                        ${departmentsList.map(d => `<option value="${d.department_id}">${d.department_name}</option>`).join('')}
-                    </select></div>`;
+                // Department Select
+                html += `
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <select id="department_id" class="form-select">
+                            <option value="">Select Department</option>
+                            ${departmentsList.map(d => `<option value="${d.department_id}">${d.department_name}</option>`).join('')}
+                        </select>
+                    </div>
+                `;
 
-                // Add Seniority Level Select
-                html += `<div class="form-group"><label>Seniority Level</label>
-                    <select id="seniority_level" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; outline:none;">
-                        <option value="Junior">Junior</option>
-                        <option value="Senior">Senior</option>
-                        <option value="Consultant">Consultant</option>
-                    </select></div>`;
+                // Seniority Level Select
+                html += `
+                    <div class="form-group">
+                        <label class="form-label">Seniority Level</label>
+                        <select id="seniority_level" class="form-select">
+                            <option value="Junior">Junior</option>
+                            <option value="Senior">Senior</option>
+                            <option value="Consultant">Consultant</option>
+                        </select>
+                    </div>
+                `;
 
                 document.getElementById('modalInputs').innerHTML = html;
             } else {
-                const fields = [{ id: 'first_name', label: 'First Name' }, { id: 'last_name', label: 'Last Name' }, { id: 'dob', label: 'DOB (YYYY-MM-DD)' }, { id: 'gender', label: 'Gender' }, { id: 'contact_number', label: 'Phone' }, { id: 'address', label: 'Address' }, { id: 'insurance_provider', label: 'Insurance' }];
-                let html = fields.map(f => `<div class="form-group"><label>${f.label}</label><input id="${f.id}" autocomplete="off"></div>`).join('');
+                const fields = [
+                    { id: 'first_name', label: 'First Name', half: true },
+                    { id: 'last_name', label: 'Last Name', half: true },
+                    { id: 'dob', label: 'Date of Birth', half: true, type: 'date' },
+                    { id: 'gender', label: 'Gender', half: true, select: ['Male', 'Female', 'Other'] },
+                    { id: 'contact_number', label: 'Phone Number', half: true },
+                    { id: 'insurance_provider', label: 'Insurance Provider', half: true }
+                ];
+                
+                let html = fields.map(f => {
+                    if (f.select) {
+                        return `
+                            <div class="form-group ${f.half ? '' : 'full-width'}">
+                                <label class="form-label">${f.label}</label>
+                                <select id="${f.id}" class="form-select">
+                                    ${f.select.map(opt => `<option value="${opt}">${opt}</option>`).join('')}
+                                </select>
+                            </div>
+                        `;
+                    }
+                    return `
+                        <div class="form-group ${f.half ? '' : 'full-width'}">
+                            <label class="form-label">${f.label}</label>
+                            <input type="${f.type || 'text'}" id="${f.id}" class="form-input" autocomplete="off">
+                        </div>
+                    `;
+                }).join('');
 
-                // Add Assigned Doctor
-                html += `<div class="form-group"><label>Assigned Doctor</label>
-                    <select id="doctor_id" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; outline:none;">
-                        <option value="">-- Select Doctor --</option>
-                        ${doctorsList.map(d => `<option value="${d.doctor_id}">Dr. ${d.first_name} ${d.last_name} (${d.specialty})</option>`).join('')}
-                    </select></div>`;
+                // Address (full width)
+                html += `
+                    <div class="form-group full-width">
+                        <label class="form-label">Address</label>
+                        <input type="text" id="address" class="form-input" autocomplete="off">
+                    </div>
+                `;
 
-                // Add Room Number
-                html += `<div class="form-group"><label>Room Number</label><input id="room_number" type="text" placeholder="e.g. 101-A"></div>`;
+                // Assigned Doctor
+                html += `
+                    <div class="form-group">
+                        <label class="form-label">Assigned Doctor</label>
+                        <select id="doctor_id" class="form-select">
+                            <option value="">-- Select Doctor --</option>
+                            ${doctorsList.map(d => `<option value="${d.doctor_id}">Dr. ${d.first_name} ${d.last_name} (${d.specialty})</option>`).join('')}
+                        </select>
+                    </div>
+                `;
 
-                // Add Status
-                html += `<div class="form-group"><label>Status</label>
-                    <select id="status" style="width:100%; padding:12px; border:1px solid #cbd5e1; border-radius:8px; outline:none;">
-                        <option value="Admitted">Admitted</option>
-                        <option value="Discharged">Discharged</option>
-                        <option value="Critical">Critical</option>
-                        <option value="Under Observation">Under Observation</option>
-                    </select></div>`;
+                // Room Number
+                html += `
+                    <div class="form-group">
+                        <label class="form-label">Room Number</label>
+                        <input type="text" id="room_number" class="form-input" placeholder="e.g. 101-A">
+                    </div>
+                `;
+
+                // Status
+                html += `
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select id="status" class="form-select">
+                            <option value="Admitted">Admitted</option>
+                            <option value="Discharged">Discharged</option>
+                            <option value="Critical">Critical</option>
+                            <option value="Under Observation">Under Observation</option>
+                        </select>
+                    </div>
+                `;
 
                 document.getElementById('modalInputs').innerHTML = html;
             }
@@ -856,44 +2131,63 @@
         function editItem(type, data) {
             openModal(type === 'doctor' ? 'Doctor' : 'Patient');
             isEditing = true;
-            document.getElementById('modalTitle').innerText = "Edit " + type;
+            document.getElementById('modalTitle').innerText = "Edit " + (type === 'doctor' ? 'Doctor' : 'Patient');
             editId = type === 'doctor' ? data.doctor_id : data.patient_id;
-            Object.keys(data).forEach(k => { if (document.getElementById(k)) document.getElementById(k).value = data[k]; });
+            
+            // Wait for modal to render, then populate fields
+            setTimeout(() => {
+                if (type === 'doctor') {
+                    // Populate doctor fields
+                    if (document.getElementById('first_name')) document.getElementById('first_name').value = data.first_name || '';
+                    if (document.getElementById('last_name')) document.getElementById('last_name').value = data.last_name || '';
+                    if (document.getElementById('specialty')) document.getElementById('specialty').value = data.specialty || '';
+                    if (document.getElementById('email')) document.getElementById('email').value = data.email || '';
+                    if (document.getElementById('phone_contact')) document.getElementById('phone_contact').value = data.phone_contact || '';
+                    if (document.getElementById('department_id')) document.getElementById('department_id').value = data.department_id || '';
+                    if (document.getElementById('seniority_level')) document.getElementById('seniority_level').value = data.seniority_level || 'Junior';
+                } else {
+                    // Populate patient fields
+                    if (document.getElementById('first_name')) document.getElementById('first_name').value = data.first_name || '';
+                    if (document.getElementById('last_name')) document.getElementById('last_name').value = data.last_name || '';
+                    if (document.getElementById('dob')) document.getElementById('dob').value = data.dob || '';
+                    if (document.getElementById('gender')) document.getElementById('gender').value = data.gender || 'Male';
+                    if (document.getElementById('contact_number')) document.getElementById('contact_number').value = data.contact_number || '';
+                    if (document.getElementById('insurance_provider')) document.getElementById('insurance_provider').value = data.insurance_provider || '';
+                    if (document.getElementById('address')) document.getElementById('address').value = data.address || '';
+                    if (document.getElementById('doctor_id')) document.getElementById('doctor_id').value = data.doctor_id || '';
+                    if (document.getElementById('room_number')) document.getElementById('room_number').value = data.room_no || data.room_number || '';
+                    if (document.getElementById('status')) document.getElementById('status').value = data.status || 'Registered';
+                }
+                console.log('[Edit] Populated form for', type, 'ID:', editId, data);
+            }, 100);
         }
 
         async function saveEntity() {
-            // Endpoints need /admin prefix
-            const endpoint = currentType === 'Doctor' ? '/admin/doctors' : '/admin/patients';
+            const endpoint = currentType === 'Doctor' ? '/api/v1/admin/doctors' : '/api/v1/admin/patients';
             let body = {};
 
             if (currentType === 'Doctor') {
-                // Collect fields for doctor
-                ['first_name', 'last_name', 'specialty', 'email', 'phone_contact', 'department_id', 'seniority_level', 'salary', 'joining_date'].forEach(k => {
-                    const el = document.getElementById(k);
-                    if (el) body[k] = el.value;
-                });
-                // Fix numeric fields
-                if (body.department_id) body.department_id = parseInt(body.department_id);
-
-                body = {}; // Reset
                 ['first_name', 'last_name', 'specialty', 'email', 'phone_contact'].forEach(k => {
                     if (document.getElementById(k)) body[k] = document.getElementById(k).value;
                 });
-                if (document.getElementById('department_id') && document.getElementById('department_id').value) body.department_id = parseInt(document.getElementById('department_id').value);
-                if (document.getElementById('seniority_level')) body.seniority_level = document.getElementById('seniority_level').value;
-
+                if (document.getElementById('department_id')?.value) {
+                    body.department_id = parseInt(document.getElementById('department_id').value);
+                }
+                if (document.getElementById('seniority_level')) {
+                    body.seniority_level = document.getElementById('seniority_level').value;
+                }
             } else {
-                // Collect fields for patient
                 ['first_name', 'last_name', 'dob', 'gender', 'contact_number', 'address', 'insurance_provider', 'room_number', 'status'].forEach(k => {
-                    const el = document.getElementById(k);
-                    if (el) body[k] = el.value;
+                    if (document.getElementById(k)) body[k] = document.getElementById(k).value;
                 });
                 const docEl = document.getElementById('doctor_id');
-                if (docEl && docEl.value && docEl.value !== "") body.doctor_id = parseInt(docEl.value);
+                if (docEl?.value) body.doctor_id = parseInt(docEl.value);
             }
 
             const method = isEditing ? 'PUT' : 'POST';
-            const url = isEditing ? `http://127.0.0.1:8000${endpoint}/${editId}` : `http://127.0.0.1:8000${endpoint}`;
+            const url = isEditing 
+                ? `http://127.0.0.1:8000${endpoint}/${editId}` 
+                : `http://127.0.0.1:8000${endpoint}`;
 
             try {
                 const res = await fetch(url, {
@@ -904,13 +2198,12 @@
 
                 if (res.ok) {
                     closeModal();
-                    // Refresh Data immediately
                     if (currentType === 'Doctor') {
                         loadDoctors();
-                        loadStats(); // Update counts
+                        loadStats();
                     } else {
                         loadPatients();
-                        loadStats(); // Update counts
+                        loadStats();
                     }
                 } else {
                     const err = await res.json();
@@ -922,21 +2215,43 @@
             }
         }
 
-
         async function deleteItem(endpoint, id) {
             if (!confirm("Are you sure you want to delete this record?")) return;
-            // endpoint argument comes in as 'doctors' or 'patients', so we prepend /admin/
+            
             try {
-                const res = await fetch(`http://127.0.0.1:8000/admin/${endpoint}/${id}`, { method: 'DELETE' });
+                 const res = await fetch(`http://127.0.0.1:8000/api/v1/admin/${endpoint}/${id}`, { method: 'DELETE' });
                 if (res.ok) {
-                    if (endpoint === 'doctors') loadDoctors(); else loadPatients();
+                    if (endpoint === 'doctors') loadDoctors(); 
+                    else loadPatients();
                     loadStats();
+                } else {
+                    const err = await res.json();
+                    alert("Delete failed: " + (err.detail || "Database Constraint"));
                 }
-                else { const err = await res.json(); alert("Delete failed: " + (err.detail || "Database Constraint")); }
-            } catch (e) { console.error("Delete failed:", e); }
+            } catch (e) {
+                console.error("Delete failed:", e);
+            }
         }
 
-        function closeModal() { document.getElementById('crudModal').style.display = 'none'; }
-        function logout() { sessionStorage.clear(); window.location.href = "index.html"; }
+        function closeModal() {
+            document.getElementById('crudModal').classList.remove('active');
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        // Close modal on overlay click
+        document.getElementById('crudModal').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeModal();
+        });
     </script>
 </body>
+
+</html>

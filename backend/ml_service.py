@@ -8,9 +8,9 @@ import os
 # Get the directory where this script is located
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 
-# Define paths relative to script location
-MODEL_PATH = os.path.join(SCRIPT_DIR, "doctor_recommender.pkl")
-DATA_PATH = os.path.join(SCRIPT_DIR, "training_data.csv")
+# Define paths relative to script location - models are in the 'models' subfolder
+MODEL_PATH = os.path.join(SCRIPT_DIR, "models", "doctor_recommender.pkl")
+DATA_PATH = os.path.join(SCRIPT_DIR, "models", "training_data.csv")
 
 def train_model():
     if not os.path.exists(DATA_PATH):

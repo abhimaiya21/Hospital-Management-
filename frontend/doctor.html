@@ -6,207 +6,483 @@
     <title>Doctor Dashboard - MediPortal</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        /* RESET & BASE */
+        /* ============================================
+           ROOT VARIABLES & DESIGN SYSTEM
+           ============================================ */
         :root {
             --primary: #3b82f6;
-            /* Doctor Blue */
+            --primary-light: #60a5fa;
             --primary-dark: #2563eb;
-            --bg: #f8fafc;
+            --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
+            
+            --success: #10b981;
+            --success-light: #34d399;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --purple: #8b5cf6;
+            
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-card: #ffffff;
+            
             --sidebar-bg: #0f172a;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
+            --sidebar-hover: rgba(255, 255, 255, 0.05);
+            --sidebar-active: rgba(59, 130, 246, 0.15);
+            
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+            --shadow-glow: 0 0 40px rgba(59, 130, 246, 0.15);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            --radius-xl: 24px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
         }
 
+        /* ============================================
+           RESET & BASE STYLES
+           ============================================ */
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            margin: 0;
-            display: flex;
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
+        html {
+            scroll-behavior: smooth;
         }
 
-        /* SIDEBAR */
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           SIDEBAR NAVIGATION
+           ============================================ */
         .sidebar {
-            width: 260px;
+            width: 280px;
             background: var(--sidebar-bg);
             color: #cbd5e1;
             display: flex;
             flex-direction: column;
-            flex-shrink: 0;
-            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.05);
-            z-index: 50;
+            position: fixed;
+            left: 0;
+            top: 0;
+            height: 100vh;
+            z-index: 100;
+            transition: var(--transition-base);
         }
 
         .sidebar-brand {
-            height: 70px;
+            height: 80px;
             display: flex;
             align-items: center;
-            padding: 0 24px;
-            font-size: 1.1rem;
-            font-weight: 700;
-            color: white;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0 28px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 14px;
         }
 
-        .sidebar-brand img {
-            height: 32px;
-            border-radius: 6px;
-            margin-right: 12px;
+        .brand-icon {
+            width: 44px;
+            height: 44px;
+            background: var(--primary-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .brand-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.02em;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 20px 16px;
+            overflow-y: auto;
+        }
+
+        .nav-section {
+            margin-bottom: 24px;
+        }
+
+        .nav-section-title {
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #64748b;
+            padding: 0 12px;
+            margin-bottom: 10px;
         }
 
         .nav-link {
-            padding: 14px 24px;
-            color: #94a3b8;
-            text-decoration: none;
-            transition: 0.2s;
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            padding: 14px 16px;
+            margin: 4px 0;
+            border-radius: var(--radius-md);
+            color: #94a3b8;
+            text-decoration: none;
             font-size: 0.95rem;
             font-weight: 500;
-            border-left: 3px solid transparent;
+            transition: var(--transition-fast);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
         }
 
         .nav-link:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: white;
+            background: var(--sidebar-hover);
+            color: #e2e8f0;
         }
 
         .nav-link.active {
-            background: rgba(59, 130, 246, 0.1);
-            color: #60a5fa;
-            border-left-color: #60a5fa;
+            background: var(--sidebar-active);
+            color: var(--primary-light);
+            box-shadow: 0 0 0 1px rgba(59, 130, 246, 0.2) inset;
         }
 
         .nav-link i {
-            width: 20px;
+            width: 22px;
+            font-size: 1.1rem;
             text-align: center;
         }
 
-        /* MAIN CONTENT */
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow-y: auto;
-            scroll-behavior: smooth;
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
         }
 
-        /* HEADER */
+        .logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            border-radius: var(--radius-md);
+            color: #ef4444;
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: var(--transition-fast);
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+        }
+
+        .logout-btn:hover {
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* ============================================
+           MAIN CONTENT AREA
+           ============================================ */
+        .main-wrapper {
+            margin-left: 280px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============================================
+           TOP HEADER BAR
+           ============================================ */
         .top-bar {
-            height: 70px;
-            background: white;
-            border-bottom: 1px solid var(--border);
+            height: 80px;
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 32px;
             flex-shrink: 0;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+
+        .page-title-area {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
         }
 
         .page-title {
-            font-size: 1.25rem;
+            font-size: 1.5rem;
             font-weight: 700;
-            color: var(--text-main);
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+        }
+
+        .page-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .action-icon-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            position: relative;
+        }
+
+        .action-icon-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .notification-dot {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            width: 8px;
+            height: 8px;
+            background: var(--danger);
+            border-radius: 50%;
+            border: 2px solid white;
         }
 
         .user-profile {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: var(--text-muted);
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            padding: 8px 16px 8px 8px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-lg);
+            cursor: pointer;
+            transition: var(--transition-fast);
         }
 
-        .badge-role {
-            background: #eff6ff;
-            color: #2563eb;
-            padding: 4px 10px;
-            border-radius: 6px;
-            font-size: 0.75rem;
+        .user-profile:hover {
+            background: var(--border-color);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
             font-weight: 600;
-            letter-spacing: 0.5px;
-            border: 1px solid #dbeafe;
+            font-size: 0.875rem;
         }
 
-        /* SCROLLABLE AREA */
-        .scroll-area {
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .user-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================
+           SCROLLABLE CONTENT AREA
+           ============================================ */
+        .content-area {
             flex: 1;
             overflow-y: auto;
             padding: 32px;
+            background: var(--bg-primary);
         }
 
-        /* SECTIONS */
+        .content-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        .content-area::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* ============================================
+           SECTIONS
+           ============================================ */
         .section {
             display: none;
-            animation: fadeIn 0.3s ease-out;
+            animation: fadeInUp 0.4s ease-out;
         }
 
         .section.active {
             display: block;
         }
 
-        @keyframes fadeIn {
+        @keyframes fadeInUp {
             from {
                 opacity: 0;
-                transform: translateY(4px);
+                transform: translateY(20px);
             }
-
             to {
                 opacity: 1;
                 transform: translateY(0);
             }
         }
 
-        /* STATS CARDS */
+        /* ============================================
+           STATS CARDS GRID
+           ============================================ */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 24px;
             margin-bottom: 32px;
         }
 
         .stat-card {
-            background: white;
+            background: var(--bg-card);
             padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            border: 1px solid var(--border);
-            transition: transform 0.2s;
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            transition: var(--transition-base);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
         }
 
         .stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
         }
 
-        .stat-card h4 {
-            margin: 0 0 8px;
+        .stat-card.patients::before { background: linear-gradient(180deg, #3b82f6, #60a5fa); }
+        .stat-card.appointments::before { background: linear-gradient(180deg, #10b981, #34d399); }
+        .stat-card.pending::before { background: linear-gradient(180deg, #f59e0b, #fbbf24); }
+        .stat-card.critical::before { background: linear-gradient(180deg, #ef4444, #f87171); }
+
+        .stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .stat-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+        }
+
+        .stat-card.patients .stat-icon { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+        .stat-card.appointments .stat-icon { background: rgba(16, 185, 129, 0.1); color: #10b981; }
+        .stat-card.pending .stat-icon { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
+        .stat-card.critical .stat-icon { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
+
+        .stat-trend {
+            display: flex;
+            align-items: center;
+            gap: 4px;
             font-size: 0.8rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
             font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 20px;
         }
 
-        .stat-card .value {
-            font-size: 2rem;
+        .stat-trend.up {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+
+        .stat-trend.down {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-value {
+            font-size: 2.25rem;
             font-weight: 700;
-            color: var(--text-main);
-            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            line-height: 1;
         }
 
-        /* CHARTS */
+        /* ============================================
+           CHARTS GRID
+           ============================================ */
         .charts-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -214,244 +490,945 @@
             margin-bottom: 32px;
         }
 
-        .chart-box {
-            background: white;
+        .chart-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
             padding: 24px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            min-height: 340px;
+            transition: var(--transition-base);
         }
 
-        .chart-box h4 {
-            margin: 0 0 20px;
+        .chart-card:hover {
+            box-shadow: var(--shadow-md);
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .chart-title {
             font-size: 1rem;
             font-weight: 600;
-            color: var(--text-main);
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
-        /* INSIGHTS & AI */
-        .insights-box {
-            background: linear-gradient(145deg, #1e293b, #0f172a);
+        .chart-title i {
+            color: var(--primary);
+        }
+
+        .chart-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .chart-action-btn {
+            padding: 6px 12px;
+            border: 1px solid var(--border-color);
+            background: white;
+            border-radius: var(--radius-sm);
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .chart-action-btn:hover, .chart-action-btn.active {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 280px;
+        }
+
+        /* ============================================
+           AI INSIGHTS CARD
+           ============================================ */
+        .insights-card {
+            background: linear-gradient(145deg, #1e1b4b 0%, #0f172a 100%);
+            border-radius: var(--radius-lg);
+            padding: 28px;
             color: white;
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            position: relative;
+            overflow: hidden;
             margin-bottom: 32px;
-            border: none;
+        }
+
+        .insights-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .insights-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .insights-header i {
+            width: 44px;
+            height: 44px;
+            background: rgba(59, 130, 246, 0.2);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            color: #93c5fd;
+        }
+
+        .insights-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+
+        .insights-subtitle {
+            font-size: 0.8rem;
+            color: #94a3b8;
+        }
+
+        .insights-content {
+            position: relative;
+            z-index: 1;
+            font-size: 1rem;
+            line-height: 1.7;
+            color: #e2e8f0;
+        }
+
+        .insights-content b {
+            color: var(--primary-light);
+        }
+
+        /* ============================================
+           AI ASSISTANT SECTION
+           ============================================ */
+        .ai-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 28px;
+        }
+
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .ai-header i {
+            width: 48px;
+            height: 48px;
+            background: var(--primary-gradient);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .ai-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .ai-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .suggestions-container {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .suggestion-chip {
+            background: var(--bg-secondary);
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            transition: var(--transition-fast);
+            border: 1px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .suggestion-chip:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: var(--primary);
+            color: var(--primary-dark);
+        }
+
+        .suggestion-chip i {
+            font-size: 0.75rem;
         }
 
         .search-area {
             display: flex;
             gap: 12px;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
-        .search-area input {
+        .search-input-wrapper {
             flex: 1;
-            padding: 12px 16px;
-            border: 1px solid #cbd5e1;
-            border-radius: 8px;
+            position: relative;
+        }
+
+        .search-input-wrapper i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 14px 16px 14px 48px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-size: 1rem;
             outline: none;
-            font-size: 0.95rem;
-            font-family: 'Inter', sans-serif;
-            transition: 0.2s;
+            transition: var(--transition-fast);
+            font-family: inherit;
         }
 
-        .search-area input:focus {
+        .search-input:focus {
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
-        .search-area button {
-            background: var(--primary);
+        .btn-primary {
+            background: var(--primary-gradient);
             color: white;
             border: none;
-            padding: 0 24px;
-            border-radius: 8px;
+            padding: 14px 28px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.95rem;
             cursor: pointer;
-            font-weight: 600;
-            transition: 0.2s;
-            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition-fast);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);
         }
 
-        .search-area button:hover {
-            background: var(--primary-dark);
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.45);
         }
 
-        table {
-            width: 100%;
-            border-collapse: collapse;
+        .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* Results Area */
+        .results-container {
             margin-top: 20px;
-            background: white;
-            border-radius: 12px;
-            overflow: hidden;
-            border: 1px solid var(--border);
         }
 
-        th {
+        .sql-editor {
             background: #f8fafc;
-            padding: 16px 24px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
+            padding: 20px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .sql-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
             font-weight: 600;
+            color: var(--info);
+            text-transform: uppercase;
             letter-spacing: 0.5px;
+            margin-bottom: 12px;
         }
 
-        td {
-            padding: 16px 24px;
-            border-bottom: 1px solid var(--border);
-            font-size: 0.95rem;
-            color: var(--text-main);
+        .sql-textarea {
+            width: 100%;
+            min-height: 80px;
+            padding: 16px;
+            border: 1px solid #cbd5e1;
+            border-radius: var(--radius-sm);
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            resize: vertical;
+            outline: none;
+            transition: var(--transition-fast);
+            background: white;
         }
 
-        tr:last-child td {
+        .sql-textarea:focus {
+            border-color: var(--info);
+            box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+        }
+
+        .sql-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: var(--transition-fast);
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.45);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+            padding: 10px 24px;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: var(--transition-fast);
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--text-muted);
+            color: var(--text-primary);
+            background: var(--bg-secondary);
+        }
+
+        /* Table Styles */
+        .table-container {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            margin-top: 20px;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+
+        .data-table th {
+            background: var(--bg-secondary);
+            padding: 16px 20px;
+            text-align: left;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .data-table td {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border-light);
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            vertical-align: middle;
+        }
+
+        .data-table tr:hover td {
+            background: rgba(59, 130, 246, 0.02);
+        }
+
+        .data-table tr:last-child td {
             border-bottom: none;
         }
 
-        /* CUSTOM SCROLLBAR */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
+        /* Patient Cell */
+        .patient-cell {
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
-        ::-webkit-scrollbar-track {
-            background: #f1f5f9;
+        .patient-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #10b981, #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 0.8rem;
         }
 
-        ::-webkit-scrollbar-thumb {
-            background: #cbd5e1;
-            border-radius: 4px;
+        .patient-info {
+            display: flex;
+            flex-direction: column;
         }
 
-        ::-webkit-scrollbar-thumb:hover {
-            background: #94a3b8;
+        .patient-name {
+            font-weight: 600;
+            color: var(--text-primary);
         }
 
-        /* PAGINATION */
+        .patient-meta {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        /* Diagnosis Badge */
+        .diagnosis-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .diagnosis-badge.info {
+            background: rgba(14, 165, 233, 0.1);
+            color: #0ea5e9;
+        }
+
+        /* Pagination */
         .pagination-container {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
-            margin-top: 10px;
-            border-top: 1px solid var(--border);
+            padding: 16px 20px;
+            border-top: 1px solid var(--border-color);
+            background: var(--bg-secondary);
+        }
+
+        .pagination-info {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .pagination-buttons {
+            display: flex;
+            gap: 8px;
         }
 
         .btn-page {
-            padding: 6px 14px;
-            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border: 1px solid var(--border-color);
             background: white;
-            border-radius: 6px;
+            border-radius: var(--radius-sm);
             cursor: pointer;
             font-size: 0.85rem;
-            color: var(--text-main);
-            transition: 0.2s;
+            font-weight: 500;
+            color: var(--text-primary);
+            transition: var(--transition-fast);
         }
 
         .btn-page:hover:not(:disabled) {
-            background: #f8fafc;
-            border-color: #cbd5e1;
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
         }
 
         .btn-page:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        /* Loading State */
+        .loading-state {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 40px;
+            color: var(--text-secondary);
+        }
+
+        .loading-spinner {
+            width: 24px;
+            height: 24px;
+            border: 2px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================
+           PATIENTS SECTION
+           ============================================ */
+        .patients-card {
+            background: var(--bg-card);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border-color);
+            padding: 28px;
+        }
+
+        .patients-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .patients-header i {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .patients-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .patients-subtitle {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        /* ============================================
+           RESPONSIVE STYLES
+           ============================================ */
+        @media (max-width: 1280px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 1024px) {
+            .sidebar {
+                width: 80px;
+            }
+            
+            .sidebar-brand .brand-text,
+            .nav-section-title,
+            .nav-link span,
+            .logout-btn span {
+                display: none;
+            }
+            
+            .sidebar-brand {
+                justify-content: center;
+                padding: 0;
+            }
+            
+            .nav-link {
+                justify-content: center;
+                padding: 16px;
+            }
+            
+            .nav-link i {
+                width: auto;
+                font-size: 1.25rem;
+            }
+            
+            .logout-btn {
+                justify-content: center;
+                padding: 16px;
+            }
+            
+            .main-wrapper {
+                margin-left: 80px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .top-bar {
+                padding: 0 20px;
+            }
+            
+            .content-area {
+                padding: 20px;
+            }
+            
+            .search-area {
+                flex-direction: column;
+            }
+            
+            .btn-primary {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* ============================================
+           UTILITY CLASSES
+           ============================================ */
+        .text-muted { color: var(--text-muted); }
+        .text-secondary { color: var(--text-secondary); }
+        .text-primary { color: var(--text-primary); }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
     </style>
+<base target="_blank">
 </head>
 
 <body>
-
+    <!-- ============================================
+         SIDEBAR NAVIGATION
+         ============================================ -->
     <nav class="sidebar">
         <div class="sidebar-brand">
-            <img src="logo.jpg" alt="RVCE Logo">
-            DoctorPortal
+            <div class="brand-icon">
+                <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <span class="brand-text">DoctorPortal</span>
         </div>
-        <a class="nav-link active" onclick="showSection('dashboard', this)"><i class="fa-solid fa-chart-line"></i>
-            Dashboard</a>
-        <a class="nav-link" onclick="showSection('patients', this)"><i class="fa-solid fa-bed-pulse"></i> My
-            Patients</a>
-        <a class="nav-link" onclick="showSection('ai', this)"><i class="fa-solid fa-robot"></i> AI Assistant</a>
-        <div style="flex-grow:1"></div>
-        <a class="nav-link" onclick="logout()" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i> Sign
-            Out</a>
+        
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <div class="nav-section-title">Main</div>
+                <button class="nav-link active" onclick="showSection('dashboard', this)">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-link" onclick="showSection('patients', this)">
+                    <i class="fa-solid fa-bed-pulse"></i>
+                    <span>My Patients</span>
+                </button>
+                <button class="nav-link" onclick="showSection('ai', this)">
+                    <i class="fa-solid fa-robot"></i>
+                    <span>AI Assistant</span>
+                </button>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">Clinical</div>
+                <button class="nav-link">
+                    <i class="fa-solid fa-calendar-check"></i>
+                    <span>Appointments</span>
+                </button>
+                <button class="nav-link">
+                    <i class="fa-solid fa-flask"></i>
+                    <span>Lab Results</span>
+                </button>
+            </div>
+        </div>
+        
+        <div class="sidebar-footer">
+            <button class="logout-btn" onclick="logout()">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Sign Out</span>
+            </button>
+        </div>
     </nav>
 
-    <div class="main-content">
-        <div class="top-bar">
-            <div class="page-title">Doctor Console</div>
-            <div class="user-profile">
-                Welcome, <span id="uName">Doctor</span>
-                <span class="badge-role">MD</span>
+    <!-- ============================================
+         MAIN CONTENT WRAPPER
+         ============================================ -->
+    <div class="main-wrapper">
+        <!-- Top Header Bar -->
+        <header class="top-bar">
+            <div class="page-title-area">
+                <h1 class="page-title">Doctor Console</h1>
+                <span class="page-subtitle">Manage patients, appointments, and clinical data</span>
             </div>
-        </div>
+            
+            <div class="top-bar-actions">
+                <button class="action-icon-btn">
+                    <i class="fa-regular fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button>
+                <button class="action-icon-btn">
+                    <i class="fa-regular fa-envelope"></i>
+                </button>
+                <div class="user-profile">
+                    <div class="user-avatar" id="userAvatar">D</div>
+                    <div class="user-info">
+                        <span class="user-name" id="uName">Doctor</span>
+                        <span class="user-role">MD</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; color: var(--text-muted);"></i>
+                </div>
+            </div>
+        </header>
 
-        <!-- DASHBOARD SECTION -->
-        <div id="sec-dashboard" class="section active">
-            <!-- 1. SUMMARY CARDS -->
-            <div class="stats-grid" id="statsGrid">
-                <div class="stat-card">
-                    <h4>Loading...</h4>
+        <!-- Scrollable Content Area -->
+        <main class="content-area">
+            <!-- ============================================
+                 DASHBOARD SECTION
+                 ============================================ -->
+            <div id="sec-dashboard" class="section active">
+                <!-- Stats Grid -->
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card patients">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fa-solid fa-users"></i>
+                            </div>
+                            <span class="stat-trend up">
+                                <i class="fa-solid fa-arrow-trend-up"></i> 8%
+                            </span>
+                        </div>
+                        <div class="stat-label">My Patients</div>
+                        <div class="stat-value" id="statPatients">--</div>
+                    </div>
+                    
+                    <div class="stat-card appointments">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fa-solid fa-calendar-check"></i>
+                            </div>
+                            <span class="stat-trend up">
+                                <i class="fa-solid fa-arrow-trend-up"></i> 3%
+                            </span>
+                        </div>
+                        <div class="stat-label">Appointments Today</div>
+                        <div class="stat-value" id="statToday">--</div>
+                    </div>
+                    
+                    <div class="stat-card pending">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fa-solid fa-clipboard-list"></i>
+                            </div>
+                            <span class="stat-trend down">
+                                <i class="fa-solid fa-arrow-trend-down"></i> 2%
+                            </span>
+                        </div>
+                        <div class="stat-label">Pending Reports</div>
+                        <div class="stat-value" id="statPending">--</div>
+                    </div>
+                    
+                    <div class="stat-card critical">
+                        <div class="stat-header">
+                            <div class="stat-icon">
+                                <i class="fa-solid fa-heart-pulse"></i>
+                            </div>
+                            <span class="stat-trend up">
+                                <i class="fa-solid fa-arrow-trend-up"></i> 1%
+                            </span>
+                        </div>
+                        <div class="stat-label">Critical Patients</div>
+                        <div class="stat-value" id="statCritical">--</div>
+                    </div>
+                </div>
+
+                <!-- Charts Grid -->
+                <div class="charts-grid">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">
+                                <i class="fa-solid fa-chart-line"></i>
+                                Appointments Trend
+                            </h4>
+                            <div class="chart-actions">
+                                <button class="chart-action-btn active">Week</button>
+                                <button class="chart-action-btn">Month</button>
+                                <button class="chart-action-btn">Year</button>
+                            </div>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartTrend"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">
+                                <i class="fa-solid fa-chart-pie"></i>
+                                Patient Condition Distribution
+                            </h4>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartCondition"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">
+                                <i class="fa-solid fa-stethoscope"></i>
+                                Common Diagnoses
+                            </h4>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartDiagnosis"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">
+                                <i class="fa-solid fa-check-double"></i>
+                                Treatment Compliance
+                            </h4>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="chartCompliance"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Insights Card -->
+                <div class="insights-card">
+                    <div class="insights-header">
+                        <i class="fa-solid fa-brain"></i>
+                        <div>
+                            <div class="insights-title">AI Usage Summary</div>
+                            <div class="insights-subtitle">Powered by MediPortal AI</div>
+                        </div>
+                    </div>
+                    <div class="insights-content" id="aiSummary">
+                        <div class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <span>Loading AI insights...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 2. ANALYTICS CHARTS -->
-            <div class="charts-grid">
-                <div class="chart-box">
-                    <h4>📈 Appointments Trend</h4>
-                    <canvas id="chartTrend"></canvas>
-                </div>
-                <div class="chart-box">
-                    <h4>🏥 Patient Condition Distribution</h4>
-                    <canvas id="chartCondition"></canvas>
-                </div>
-                <div class="chart-box">
-                    <h4>🦠 Common Diagnoses</h4>
-                    <canvas id="chartDiagnosis"></canvas>
-                </div>
-                <div class="chart-box">
-                    <h4>✅ Treatment Compliance</h4>
-                    <canvas id="chartCompliance"></canvas>
+            <!-- ============================================
+                 PATIENTS SECTION
+                 ============================================ -->
+            <div id="sec-patients" class="section">
+                <div class="patients-card">
+                    <div class="patients-header">
+                        <i class="fa-solid fa-users"></i>
+                        <div>
+                            <div class="patients-title">My Assigned Patients</div>
+                            <div class="patients-subtitle">View and manage your patient list</div>
+                        </div>
+                    </div>
+                    <div id="patientsTableContainer">
+                        <div class="loading-state">
+                            <div class="loading-spinner"></div>
+                            <span>Loading patients...</span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 3. AI USAGE SUMMARY -->
-            <div class="insights-box">
-                <h3 style="margin-top:0"><i class="fa-solid fa-brain"></i> AI Usage Summary</h3>
-                <div id="aiSummary" style="font-size:16px; color:#4b5563;">Loading data...</div>
-            </div>
-        </div>
-
-        <!-- PATIENTS SECTION (Placeholder) -->
-        <div id="sec-patients" class="section">
-            <div class="chart-box">
-                <h3>My Patients List</h3>
-                <p>Feature under construction. Use the AI Assistant to query specific patient records.</p>
-            </div>
-        </div>
-
-        <!-- AI SECTION -->
-        <div id="sec-ai" class="section">
-            <div class="chart-box">
-                <h3>🤖 AI Clinical Assistant</h3>
-                <div id="suggestions" style="margin-bottom:15px; display:flex; gap:10px; flex-wrap:wrap;"></div>
-                <div class="search-area">
-                    <input id="query" placeholder="e.g., Show medical records for Robert Smith...">
-                    <button onclick="askAI()" id="btnAsk">Ask AI</button>
+            <!-- ============================================
+                 AI ASSISTANT SECTION
+                 ============================================ -->
+            <div id="sec-ai" class="section">
+                <div class="ai-card">
+                    <div class="ai-header">
+                        <i class="fa-solid fa-robot"></i>
+                        <div>
+                            <div class="ai-title">AI Clinical Assistant</div>
+                            <div class="ai-subtitle">Ask natural language questions about patient data</div>
+                        </div>
+                    </div>
+                    
+                    <div class="suggestions-container" id="suggestions"></div>
+                    
+                    <div class="search-area">
+                        <div class="search-input-wrapper">
+                            <i class="fa-solid fa-magnifying-glass"></i>
+                            <input type="text" id="query" class="search-input" placeholder="e.g., Show medical records for Robert Smith...">
+                        </div>
+                        <button class="btn-primary" onclick="askAI()" id="btnAsk">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            Ask AI
+                        </button>
+                    </div>
+                    
+                    <div class="results-container" id="results">
+                        <div class="empty-state">
+                            <i class="fa-solid fa-comments"></i>
+                            <p>Results will appear here after you ask a question...</p>
+                        </div>
+                    </div>
                 </div>
-                <div id="results" style="margin-top:20px; color:#64748b;">Results will appear here...</div>
             </div>
-        </div>
+        </main>
     </div>
 
+    <!-- ============================================
+         JAVASCRIPT
+         ============================================ -->
     <script>
         // --- AUTH CHECK ---
         const user = sessionStorage.getItem("hospitalUser");
         if (sessionStorage.getItem("hospitalRole") !== 'doctor') window.location.href = "index.html";
         document.getElementById("uName").innerText = user || 'Doctor';
+        document.getElementById("userAvatar").innerText = (user || 'D').charAt(0).toUpperCase();
+
+        // --- STATE ---
+        let chartInstances = {};
+        let currentResults = [];
+        let currentPage = 1;
+        const rowsPerPage = 10;
 
         // --- INIT ---
         loadAnalytics();
@@ -466,217 +1443,377 @@
 
         async function loadAnalytics() {
             try {
-                if (typeof Chart === 'undefined') { alert("Chart.js failed to load!"); return; }
-                const res = await fetch("http://127.0.0.1:8000/doctor/analytics");
+                if (typeof Chart === 'undefined') {
+                    document.getElementById("statsGrid").innerHTML = "<div style='color:red; padding:20px;'>Chart.js failed to load!</div>";
+                    return;
+                }
+
+                const res = await fetch("http://127.0.0.1:8000/api/v1/doctor/analytics");
                 const data = await res.json();
 
-                if (data.error) { console.error(data.error); return; }
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
 
-                // 1. CARDS
-                document.getElementById("statsGrid").innerHTML = `
-                    <div class="stat-card" style="border-left-color:#3b82f6"><h4>My Patients</h4><div class="value">${data.summary.patients}</div></div>
-                    <div class="stat-card" style="border-left-color:#10b981"><h4>Appointments Today</h4><div class="value">${data.summary.today}</div></div>
-                    <div class="stat-card" style="border-left-color:#f59e0b"><h4>Pending Reports</h4><div class="value">${data.summary.pending}</div></div>
-                    <div class="stat-card" style="border-left-color:#ef4444"><h4>Critical Patients</h4><div class="value">${data.summary.critical}</div></div>
-                `;
+                // 1. Stats Cards
+                document.getElementById("statPatients").textContent = data.summary?.patients || 0;
+                document.getElementById("statToday").textContent = data.summary?.today || 0;
+                document.getElementById("statPending").textContent = data.summary?.pending || 0;
+                document.getElementById("statCritical").textContent = data.summary?.critical || 0;
 
-                // 2. CHARTS
-                renderChart('chartTrend', 'line', data.trend.labels, [{ label: 'Appts', data: data.trend.data, borderColor: '#3b82f6', tension: 0.3 }]);
-                renderChart('chartCondition', 'doughnut', Object.keys(data.conditions), [{ data: Object.values(data.conditions), backgroundColor: ['#10b981', '#f59e0b', '#ef4444'] }]);
-                renderChart('chartDiagnosis', 'bar', Object.keys(data.diagnoses), [{ label: 'Cases', data: Object.values(data.diagnoses), backgroundColor: '#8b5cf6' }], { indexAxis: 'y' });
-                renderChart('chartCompliance', 'bar', Object.keys(data.compliance), [{ label: 'Patients', data: Object.values(data.compliance), backgroundColor: ['#10b981', '#ef4444'] }]);
+                // 2. Charts
+                renderChart('chartTrend', 'line', data.trend?.labels || [], [
+                    { 
+                        label: 'Appointments', 
+                        data: data.trend?.data || [], 
+                        borderColor: '#3b82f6', 
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }
+                ]);
+                
+                renderChart('chartCondition', 'doughnut', Object.keys(data.conditions || {}), [
+                    { 
+                        data: Object.values(data.conditions || {}), 
+                        backgroundColor: ['#10b981', '#f59e0b', '#ef4444'],
+                        borderWidth: 0
+                    }
+                ]);
+                
+                renderChart('chartDiagnosis', 'bar', Object.keys(data.diagnoses || {}), [
+                    { 
+                        label: 'Cases', 
+                        data: Object.values(data.diagnoses || {}), 
+                        backgroundColor: ['#8b5cf6', '#a855f7', '#d946ef', '#ec4899'],
+                        borderRadius: 6
+                    }
+                ], { indexAxis: 'y' });
+                
+                renderChart('chartCompliance', 'bar', Object.keys(data.compliance || {}), [
+                    { 
+                        label: 'Patients', 
+                        data: Object.values(data.compliance || {}), 
+                        backgroundColor: ['#10b981', '#ef4444'],
+                        borderRadius: 6
+                    }
+                ]);
 
-                document.getElementById("aiSummary").innerHTML = `Doctors have made <b>${data.ai_usage}</b> clinical queries today.`;
+                // 3. AI Summary
+                document.getElementById("aiSummary").innerHTML = 
+                    `Doctors have made <b>${data.ai_usage || 0}</b> clinical queries today.`;
 
-                // 4. FETCH PATIENTS LIST
+                // 4. Load Patients List
                 loadPatientsList();
 
             } catch (e) {
                 console.error("Load failed", e);
-                alert("Doctor Dashboard Error: " + e.message);
+                document.getElementById("statsGrid").innerHTML = "<div style='color:red; padding:20px;'>Error loading data. Check console.</div>";
             }
         }
 
         async function loadPatientsList() {
             try {
-                const res = await fetch("http://127.0.0.1:8000/doctor/patients");
+                const res = await fetch("http://127.0.0.1:8000/api/v1/doctor/patients");
                 const patients = await res.json();
 
                 if (patients.error || !Array.isArray(patients)) {
-                    console.error("Invalid patients data");
+                    document.getElementById("patientsTableContainer").innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-solid fa-triangle-exclamation"></i>
+                            <p>Failed to load patients</p>
+                        </div>
+                    `;
                     return;
                 }
 
-                // Render Table (Admin Style / Query Format)
-                let tableHtml = `
-                    <div style="overflow:auto; max-height:500px; border-radius:12px; border:1px solid #e2e8f0;">
-                    <table style="width:100%; border-collapse:collapse; background:white;">
-                        <thead>
-                            <tr style="background:#f8fafc;">
-                                <th style="position:sticky; top:0; z-index:10; background:#f8fafc; padding:16px 24px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:0.75rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">ID</th>
-                                <th style="position:sticky; top:0; z-index:10; background:#f8fafc; padding:16px 24px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:0.75rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">NAME / CONTACT</th>
-                                <th style="position:sticky; top:0; z-index:10; background:#f8fafc; padding:16px 24px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:0.75rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">ACTIVE DIAGNOSIS</th>
-                                <th style="position:sticky; top:0; z-index:10; background:#f8fafc; padding:16px 24px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:0.75rem; color:#64748b; text-transform:uppercase; font-weight:600; letter-spacing:0.5px;">TREATMENT PLAN</th>
-                            </tr>
-                        </thead>
-                        <tbody>
+                if (patients.length === 0) {
+                    document.getElementById("patientsTableContainer").innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-solid fa-inbox"></i>
+                            <p>No patients assigned</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = `
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Patient</th>
+                                    <th>Diagnosis</th>
+                                    <th>Treatment Plan</th>
+                                </tr>
+                            </thead>
+                            <tbody>
                 `;
 
-                tableHtml += patients.map(p => `
+                html += patients.map(p => `
                     <tr>
-                        <td style="padding:16px 24px; border-bottom:1px solid #e2e8f0; font-size:0.95rem; color:#1e293b; white-space:nowrap;">#${p.patient_id}</td>
-                        <td style="padding:16px 24px; border-bottom:1px solid #e2e8f0; font-size:0.95rem; color:#1e293b;">
-                            <div style="font-weight:600;">${p.first_name} ${p.last_name}</div>
-                            <div style="font-size:12px; color:#64748b; margin-top:2px;">${p.contact_number || 'No Phone'}</div>
+                        <td><span class="diagnosis-badge info">#${p.patient_id}</span></td>
+                        <td>
+                            <div class="patient-cell">
+                                <div class="patient-avatar">${p.first_name?.charAt(0) || 'P'}</div>
+                                <div class="patient-info">
+                                    <span class="patient-name">${p.first_name} ${p.last_name}</span>
+                                    <span class="patient-meta">${p.contact_number || 'No Phone'}</span>
+                                </div>
+                            </div>
                         </td>
-                        <td style="padding:16px 24px; border-bottom:1px solid #e2e8f0; font-size:0.95rem;">
-                            <span style="background:#e0f2fe; color:#0284c7; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:600; letter-spacing:0.5px;">
+                        <td>
+                            <span class="diagnosis-badge info">
                                 ${(p.diagnosis || 'Under Evaluation').toUpperCase()}
                             </span>
                         </td>
-                        <td style="padding:16px 24px; border-bottom:1px solid #e2e8f0; font-size:0.95rem; color:#64748b;">
+                        <td style="color: var(--text-secondary);">
                             ${p.treatment_plan || '<span style="font-style:italic">Pending Plan</span>'}
                         </td>
                     </tr>
                 `).join('');
 
-                tableHtml += `</tbody></table></div>`;
+                html += `</tbody></table></div>`;
+                document.getElementById("patientsTableContainer").innerHTML = html;
 
-                const container = document.querySelector("#sec-patients .chart-box");
-                container.innerHTML = `<h3><i class="fa-solid fa-users"></i> My Assigned Patients</h3>${tableHtml}`;
-
-            } catch (e) { console.error("Patients Load Error", e); }
+            } catch (e) {
+                console.error("Patients Load Error", e);
+                document.getElementById("patientsTableContainer").innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>Error loading patients</p>
+                    </div>
+                `;
+            }
         }
 
-        let chartInstances = {};
         function renderChart(id, type, labels, datasets, options = {}) {
+            const ctx = document.getElementById(id);
+            if (!ctx) return;
+            
             if (chartInstances[id]) chartInstances[id].destroy();
-            chartInstances[id] = new Chart(document.getElementById(id), { type, data: { labels, datasets }, options });
+            
+            chartInstances[id] = new Chart(ctx, {
+                type,
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: type === 'doughnut',
+                            position: 'bottom',
+                            labels: { padding: 20, usePointStyle: true }
+                        }
+                    },
+                    scales: type !== 'doughnut' ? {
+                        x: { grid: { display: false }, ticks: { font: { size: 11 } } },
+                        y: { grid: { color: '#f1f5f9' }, ticks: { font: { size: 11 } } }
+                    } : {},
+                    ...options
+                }
+            });
         }
 
         // --- AI LOGIC ---
         function initAI() {
-            const queries = ["My Active Inpatients", "Pending Lab Results", "Total Revenue Generated"];
-            document.getElementById("suggestions").innerHTML = queries.map(q => `<span style="background:#e2e8f0; padding:6px 12px; border-radius:20px; cursor:pointer; font-size:13px; color:#475569;" onclick="document.getElementById('query').value='${q}'">💡 ${q}</span>`).join('');
+            const queries = [
+                "My Active Inpatients",
+                "Pending Lab Results",
+                "Total Revenue Generated",
+                "Patients with Critical Status"
+            ];
+            
+            document.getElementById("suggestions").innerHTML = queries.map(q => `
+                <span class="suggestion-chip" onclick="document.getElementById('query').value='${q}'">
+                    <i class="fa-solid fa-lightbulb"></i>
+                    ${q}
+                </span>
+            `).join('');
         }
 
         async function askAI() {
             const btn = document.getElementById("btnAsk");
-            const text = document.getElementById("query").value;
+            const text = document.getElementById("query").value.trim();
             const resultsDiv = document.getElementById("results");
 
-            if (!text) return;
+            if (!text) {
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        <p>Please enter a question first</p>
+                    </div>
+                `;
+                return;
+            }
 
-            // Check if we are in "Execute" mode by checking button text or attribute
-            // Simpler approach: Just handle text input = Generate
+            btn.disabled = true;
+            btn.innerHTML = '<div class="loading-spinner" style="width:16px; height:16px; border-width:2px;"></div> Generating...';
+            
+            resultsDiv.innerHTML = `
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <span>Processing your request...</span>
+                </div>
+            `;
 
-            // STEP 1: GENERATE
-            btn.innerText = "Generating...";
             try {
-                const res = await fetch("http://127.0.0.1:8000/doctor/query", {
-                    method: "POST", headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text, username: user, role: 'doctor', mode: 'generate' })
+                const res = await fetch("http://127.0.0.1:8000/api/v1/doctor/query", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        text, 
+                        username: user, 
+                        role: 'doctor', 
+                        mode: 'generate' 
+                    })
                 });
+                
                 const data = await res.json();
 
                 if (data.generated_sql) {
-                    // Show SQL for Review
                     resultsDiv.innerHTML = `
-                        <div style="background:#f0f9ff; padding:15px; border-radius:8px; border:1px solid #bae6fd; margin-bottom:15px;">
-                            <label style="display:block; font-size:12px; color:#0284c7; margin-bottom:5px; font-weight:bold;">GENERATED SQL (Review & Edit):</label>
-                            <textarea id="generatedSql" style="width:100%; height:60px; padding:10px; border:1px solid #cbd5e1; border-radius:6px; font-family:monospace;">${data.generated_sql}</textarea>
-                            <div style="margin-top:10px; text-align:right;">
-                                <button onclick="executeSQL()" style="background:#10b981; color:white; border:none; padding:8px 20px; border-radius:6px; font-weight:bold; cursor:pointer;">Run Query</button>
+                        <div class="sql-editor">
+                            <div class="sql-label">
+                                <i class="fa-solid fa-code"></i>
+                                Generated SQL (Review & Edit)
+                            </div>
+                            <textarea id="generatedSql" class="sql-textarea">${data.generated_sql}</textarea>
+                            <div class="sql-actions">
+                                <button class="btn-secondary" onclick="askAI()">
+                                    <i class="fa-solid fa-rotate"></i> Regenerate
+                                </button>
+                                <button class="btn-success" onclick="executeSQL()">
+                                    <i class="fa-solid fa-play"></i> Run Query
+                                </button>
                             </div>
                         </div>
                     `;
-                    btn.innerText = "Re-Generate";
                 } else {
-                    resultsDiv.innerText = "AI could not generate a query.";
-                    btn.innerText = "Ask AI";
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            <p>AI could not generate a query. Please try rephrasing your question.</p>
+                        </div>
+                    `;
                 }
-            } catch (e) { console.error(e); resultsDiv.innerText = "Error contacting server."; btn.innerText = "Ask AI"; }
+            } catch (e) {
+                console.error(e);
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>Error contacting server. Please try again.</p>
+                    </div>
+                `;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Ask AI';
+            }
         }
-
-        let currentResults = [];
-        let currentPage = 1;
-        const rowsPerPage = 10;
 
         async function executeSQL() {
             const sql = document.getElementById("generatedSql").value;
             const resultsDiv = document.getElementById("results");
 
             resultsDiv.innerHTML = `
-                <div style="background:#f0f9ff; padding:15px; border-radius:8px; border:1px solid #bae6fd; margin-bottom:15px;">
-                     <p style="color:#0284c7; font-weight:bold;">Running Query...</p>
+                <div class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <span>Executing query...</span>
                 </div>
             `;
 
             try {
-                const execRes = await fetch("http://127.0.0.1:8000/doctor/query", {
-                    method: "POST", headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ sql: sql, username: user, role: 'doctor', mode: 'execute' })
+                const execRes = await fetch("http://127.0.0.1:8000/api/v1/doctor/query", {
+                    method: "POST",
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        sql, 
+                        username: user, 
+                        role: 'doctor', 
+                        mode: 'execute' 
+                    })
                 });
+                
                 const results = await execRes.json();
 
                 if (results.results) {
                     if (results.results.length === 0) {
-                        resultsDiv.innerHTML = "<p style='color:#ef4444; font-weight:bold;'>No records found matching that query.</p>";
+                        resultsDiv.innerHTML = `
+                            <div class="empty-state">
+                                <i class="fa-solid fa-inbox"></i>
+                                <p>No records found matching that query</p>
+                            </div>
+                        `;
                     } else {
-                        // Init Pagination
                         currentResults = results.results;
                         currentPage = 1;
                         renderPaginatedTable();
                     }
                 } else {
-                    resultsDiv.innerHTML = `<p style='color:red'>Error: ${results.error || "No data"}</p>`;
+                    resultsDiv.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                            <p>Error: ${results.error || "No data returned"}</p>
+                        </div>
+                    `;
                 }
-            } catch (e) { console.error(e); resultsDiv.innerHTML = "<p>Execution Error.</p>"; }
+            } catch (e) {
+                console.error(e);
+                resultsDiv.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <p>Execution error. Please try again.</p>
+                    </div>
+                `;
+            }
         }
 
         function renderPaginatedTable() {
             const resultsDiv = document.getElementById("results");
             const totalPages = Math.ceil(currentResults.length / rowsPerPage);
 
-            // Slice Data
             const start = (currentPage - 1) * rowsPerPage;
             const end = start + rowsPerPage;
             const pageData = currentResults.slice(start, end);
 
-            // Render Table (Fixed Layout)
-            let html = "<div style='overflow:auto; max-height:500px; border:1px solid #e2e8f0; border-radius:8px; box-shadow:0 1px 3px rgba(0,0,0,0.05);'>";
-            html += "<table style='width:100%; border-collapse:separate; border-spacing:0;'><thead><tr>";
+            let html = '<div class="table-container"><table class="data-table"><thead><tr>';
 
-            // Headers
             if (currentResults.length > 0) {
                 html += Object.keys(currentResults[0]).map(k =>
-                    `<th style='position:sticky; top:0; z-index:10; background:#f8fafc; padding:12px; text-align:left; border-bottom:1px solid #e2e8f0; font-size:0.75rem; color:#64748b; text-transform:uppercase;'>${k}</th>`
+                    `<th>${k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}</th>`
                 ).join('');
             }
-            html += "</tr></thead><tbody>";
+            html += '</tr></thead><tbody>';
 
-            // Rows
             html += pageData.map(r =>
                 "<tr>" + Object.values(r).map(v =>
-                    `<td style='padding:12px; border-bottom:1px solid #f1f5f9; font-size:0.9rem; color:#334155; white-space:nowrap;'>${(v === null || v === 'null') ? '-' : v}</td>`
+                    `<td>${(v === null || v === 'null') ? '-' : v}</td>`
                 ).join('') + "</tr>"
             ).join('');
 
-            html += "</tbody></table></div>";
+            html += '</tbody></table>';
 
-            // Pagination Controls
-            html += `
-                <div class="pagination-container">
-                    <div style="font-size:0.9rem; color:#64748b;">
-                        Showing ${start + 1} to ${Math.min(end, currentResults.length)} of ${currentResults.length} entries
+            if (totalPages > 1) {
+                html += `
+                    <div class="pagination-container">
+                        <span class="pagination-info">
+                            Showing ${start + 1} to ${Math.min(end, currentResults.length)} of ${currentResults.length} entries
+                        </span>
+                        <div class="pagination-buttons">
+                            <button class="btn-page" onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>
+                                <i class="fa-solid fa-chevron-left"></i> Previous
+                            </button>
+                            <button class="btn-page" onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>
+                                Next <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn-page" onclick="changePage(-1)" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>
-                        <button class="btn-page" onclick="changePage(1)" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>
-                    </div>
-                </div>
-            `;
+                `;
+            }
 
+            html += '</div>';
             resultsDiv.innerHTML = html;
         }
 
@@ -685,7 +1822,15 @@
             renderPaginatedTable();
         }
 
-        function logout() { sessionStorage.clear(); window.location.href = "index.html"; }
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        // Allow Enter key to submit
+        document.getElementById('query').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') askAI();
+        });
     </script>
 </body>
 

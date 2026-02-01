@@ -3,48 +3,152 @@
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emergency Patient Intake - MediPortal</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        /* ============================================
+           ROOT VARIABLES & DESIGN SYSTEM
+           ============================================ */
         :root {
             --primary: #3b82f6;
+            --primary-light: #60a5fa;
             --primary-dark: #2563eb;
-            --bg: #f8fafc;
-            --sidebar-bg: #0f172a;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --success: #22c55e;
+            
+            --success: #10b981;
             --warning: #f59e0b;
             --error: #ef4444;
+            --error-light: #f87171;
+            --error-gradient: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            
+            --bg-primary: #f8fafc;
+            --bg-secondary: #f1f5f9;
+            --bg-card: #ffffff;
+            
+            --sidebar-bg: #0f172a;
+            --sidebar-hover: rgba(255, 255, 255, 0.05);
+            --sidebar-active: rgba(239, 68, 68, 0.15);
+            
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            
+            --border-color: #e2e8f0;
+            --border-light: #f1f5f9;
+            
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+            
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+            
+            --transition-fast: 0.15s ease;
+            --transition-base: 0.25s ease;
         }
 
+        /* ============================================
+           RESET & BASE STYLES
+           ============================================ */
         * {
+            margin: 0;
+            padding: 0;
             box-sizing: border-box;
         }
 
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            margin: 0;
-            display: flex;
-            color: var(--text-main);
-            height: 100vh;
-            overflow: hidden;
+        html {
+            scroll-behavior: smooth;
         }
 
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ============================================
+           MOBILE HEADER
+           ============================================ */
+        .mobile-header {
+            display: none;
+            height: 60px;
+            background: var(--error);
+            color: white;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+        }
+
+        .mobile-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 700;
+            font-size: 1.1rem;
+        }
+
+        .menu-toggle {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-sm);
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* ============================================
+           SIDEBAR NAVIGATION
+           ============================================ */
         .sidebar {
-            width: 260px;
+            width: 280px;
             background: var(--sidebar-bg);
             color: #cbd5e1;
             display: flex;
             flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
             height: 100vh;
+            z-index: 90;
+            transition: var(--transition-base);
+        }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 80;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
         }
 
         .sidebar-brand {
-            height: 70px;
+            height: 80px;
             display: flex;
             align-items: center;
             padding: 0 24px;
@@ -52,42 +156,76 @@
             color: white;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             font-size: 1.1rem;
+            gap: 12px;
+        }
+
+        .sidebar-brand i {
+            color: var(--error-light);
+            font-size: 1.25rem;
+        }
+
+        .sidebar-nav {
+            flex: 1;
+            padding: 16px 12px;
+            overflow-y: auto;
         }
 
         .nav-link {
-            padding: 14px 24px;
+            padding: 14px 16px;
             color: #94a3b8;
             text-decoration: none;
             display: flex;
-            gap: 12px;
+            align-items: center;
+            gap: 14px;
             font-weight: 500;
-            border-left: 3px solid transparent;
+            border-radius: var(--radius-md);
             cursor: pointer;
-            transition: 0.2s;
+            transition: var(--transition-fast);
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            font-size: 0.95rem;
         }
 
         .nav-link.active {
-            background: rgba(239, 68, 68, 0.1);
-            color: #f87171;
-            border-left-color: #ef4444;
+            background: var(--sidebar-active);
+            color: var(--error-light);
         }
 
         .nav-link:hover:not(.active) {
-            background: rgba(255, 255, 255, 0.05);
+            background: var(--sidebar-hover);
             color: white;
         }
 
-        .main-content {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        .nav-link i {
+            width: 22px;
+            font-size: 1.1rem;
+            text-align: center;
         }
 
+        .sidebar-footer {
+            padding: 16px 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* ============================================
+           MAIN CONTENT AREA
+           ============================================ */
+        .main-wrapper {
+            margin-left: 280px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ============================================
+           TOP HEADER BAR
+           ============================================ */
         .top-bar {
             height: 70px;
-            background: white;
-            border-bottom: 1px solid var(--border);
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -99,30 +237,119 @@
             font-size: 1.5rem;
             font-weight: 700;
             color: var(--error);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.02em;
         }
 
-        .scroll-area {
+        .page-title i {
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.1); }
+        }
+
+        .priority-badge {
+            background: var(--error-gradient);
+            color: white;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* ============================================
+           SCROLLABLE CONTENT AREA
+           ============================================ */
+        .content-area {
             flex: 1;
             overflow-y: auto;
-            padding: 30px;
-            background: var(--bg);
+            padding: 32px;
+            background: var(--bg-primary);
         }
 
+        .content-area::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .content-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content-area::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        /* ============================================
+           INTAKE CARD
+           ============================================ */
         .intake-card {
-            background: white;
-            padding: 30px;
-            border-radius: 12px;
+            background: var(--bg-card);
+            padding: 32px;
+            border-radius: var(--radius-lg);
             border: 2px solid var(--error);
             max-width: 1000px;
             margin: 0 auto;
-            box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
+            box-shadow: 0 4px 20px rgba(239, 68, 68, 0.1);
         }
 
+        /* Emergency Banner */
+        .emergency-banner {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            border-left: 4px solid var(--error);
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .emergency-banner i {
+            font-size: 1.75rem;
+            color: var(--error);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .emergency-banner strong {
+            display: block;
+            color: var(--text-primary);
+            font-size: 1.1rem;
+            margin-bottom: 4px;
+        }
+
+        .emergency-banner span {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        /* Section Headers */
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--error);
+            margin: 32px 0 20px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .section-title:first-of-type {
+            margin-top: 0;
+        }
+
+        /* Form Grid */
         .form-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(2, 1fr);
             gap: 20px;
-            margin-top: 20px;
         }
 
         .form-full {
@@ -136,27 +363,33 @@
 
         .form-group label {
             font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--text-main);
+            margin-bottom: 8px;
+            color: var(--text-primary);
             font-size: 0.9rem;
+        }
+
+        .required {
+            color: var(--error);
         }
 
         .form-group input,
         .form-group select,
         .form-group textarea {
-            padding: 10px 14px;
-            border: 1px solid #cbd5e1;
-            border-radius: 6px;
-            font-family: 'Inter';
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            font-family: inherit;
             font-size: 0.95rem;
+            outline: none;
+            transition: var(--transition-fast);
+            background: white;
         }
 
         .form-group input:focus,
         .form-group select:focus,
         .form-group textarea:focus {
-            outline: none;
             border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
         }
 
         .form-group textarea {
@@ -164,54 +397,72 @@
             min-height: 100px;
         }
 
-        .required {
-            color: var(--error);
-        }
-
+        /* Submit Button */
         .btn-emergency {
-            background: var(--error);
+            background: var(--error-gradient);
             color: white;
             border: none;
-            padding: 14px 30px;
-            border-radius: 8px;
+            padding: 16px 32px;
+            border-radius: var(--radius-md);
             font-weight: 700;
             cursor: pointer;
             font-size: 1.05rem;
-            display: flex;
+            display: inline-flex;
             align-items: center;
-            gap: 10px;
-            margin-top: 20px;
-            transition: 0.2s;
+            gap: 12px;
+            margin-top: 24px;
+            transition: var(--transition-fast);
+            box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+            animation: emergencyPulse 2s ease-in-out infinite;
+        }
+
+        @keyframes emergencyPulse {
+            0%, 100% { box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); }
+            50% { box-shadow: 0 4px 25px rgba(239, 68, 68, 0.6); }
         }
 
         .btn-emergency:hover {
-            background: #dc2626;
-            transform: translateY(-1px);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(239, 68, 68, 0.55);
+            animation: none;
         }
 
         .btn-emergency:disabled {
-            opacity: 0.6;
+            opacity: 0.7;
             cursor: not-allowed;
             transform: none;
+            animation: none;
         }
 
+        /* Status Messages */
         .status-messages {
-            margin-top: 25px;
+            margin-top: 24px;
             padding: 20px;
-            background: #f8fafc;
-            border-radius: 8px;
+            background: var(--bg-secondary);
+            border-radius: var(--radius-md);
             display: none;
         }
 
         .status-messages.show {
             display: block;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        .status-messages h3 {
+            margin: 0 0 16px;
+            font-size: 1rem;
+            color: var(--text-primary);
         }
 
         .message-item {
-            padding: 8px 12px;
-            margin: 6px 0;
-            border-radius: 6px;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border-radius: var(--radius-sm);
             font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .message-success {
@@ -232,106 +483,274 @@
             border-left: 4px solid var(--error);
         }
 
+        /* Results Card */
         .results-card {
-            margin-top: 20px;
-            padding: 25px;
+            margin-top: 24px;
+            padding: 24px;
             background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-            border-radius: 10px;
+            border-radius: var(--radius-lg);
             border: 2px solid var(--primary);
             display: none;
         }
 
         .results-card.show {
             display: block;
+            animation: fadeInUp 0.4s ease-out;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
         }
 
         .result-header {
-            font-size: 1.3rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: var(--primary);
-            margin-bottom: 15px;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
         }
 
         .result-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 16px;
         }
 
         .result-item {
             background: white;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid var(--border);
+            padding: 16px;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--border-color);
         }
 
         .result-item-label {
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             text-transform: uppercase;
             color: var(--text-muted);
             font-weight: 600;
-            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+            margin-bottom: 8px;
         }
 
         .result-item-value {
             font-size: 1.1rem;
             font-weight: 600;
-            color: var(--text-main);
+            color: var(--text-primary);
+            line-height: 1.4;
         }
 
-        .emergency-banner {
-            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
-            padding: 15px 20px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid var(--error);
-            display: flex;
-            align-items: center;
-            gap: 12px;
+        .result-item-value small {
+            display: block;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            font-weight: 400;
+            margin-top: 4px;
         }
 
-        .emergency-banner i {
-            font-size: 1.5rem;
-            color: var(--error);
+        /* Loading Spinner */
+        .loading-spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* ============================================
+           RESPONSIVE STYLES
+           ============================================ */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-wrapper {
+                margin-left: 0;
+            }
+
+            .mobile-header {
+                display: flex;
+            }
+
+            .top-bar {
+                margin-top: 60px;
+                padding: 0 20px;
+                height: 60px;
+            }
+
+            .page-title {
+                font-size: 1.1rem;
+            }
+
+            .priority-badge {
+                display: none;
+            }
+
+            .content-area {
+                padding: 20px;
+            }
+
+            .intake-card {
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-full {
+                grid-column: 1;
+            }
+
+            .intake-card {
+                padding: 16px;
+                border-radius: var(--radius-md);
+            }
+
+            .emergency-banner {
+                padding: 16px;
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .emergency-banner i {
+                font-size: 1.5rem;
+            }
+
+            .section-title {
+                font-size: 1.1rem;
+                margin: 24px 0 16px;
+            }
+
+            .btn-emergency {
+                width: 100%;
+                justify-content: center;
+                padding: 18px 24px;
+            }
+
+            .result-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .result-item {
+                padding: 14px;
+            }
+
+            .result-item-value {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .top-bar {
+                padding: 0 16px;
+            }
+
+            .page-title {
+                font-size: 1rem;
+                gap: 8px;
+            }
+
+            .content-area {
+                padding: 16px;
+            }
+
+            .intake-card {
+                padding: 14px;
+                border-width: 1px;
+            }
+
+            .form-group input,
+            .form-group select,
+            .form-group textarea {
+                padding: 10px 12px;
+                font-size: 16px; /* Prevent zoom on iOS */
+            }
+
+            .message-item {
+                padding: 10px 12px;
+                font-size: 0.85rem;
+            }
         }
     </style>
+<base target="_blank">
 </head>
 
 <body>
-    <nav class="sidebar">
-        <div class="sidebar-brand">
-            <i class="fa-solid fa-truck-medical" style="margin-right:10px;"></i> Emergency Intake
+    <!-- Mobile Header -->
+    <header class="mobile-header">
+        <div class="mobile-brand">
+            <i class="fa-solid fa-truck-medical"></i>
+            Emergency Intake
         </div>
-        <a class="nav-link active"><i class="fa-solid fa-user-plus"></i> New Patient</a>
-        <a class="nav-link" href="patient.html"><i class="fa-solid fa-file-medical"></i> Regular Intake</a>
-        <div style="flex-grow:1"></div>
-        <a class="nav-link" href="index.html" style="color:#ef4444;"><i
-                class="fa-solid fa-arrow-right-from-bracket"></i> Exit</a>
+        <button class="menu-toggle" onclick="toggleSidebar()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+    </header>
+
+    <!-- Sidebar Overlay -->
+    <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+
+    <!-- SIDEBAR -->
+    <nav class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <i class="fa-solid fa-truck-medical"></i>
+            Emergency Intake
+        </div>
+        <div class="sidebar-nav">
+            <a class="nav-link active">
+                <i class="fa-solid fa-user-plus"></i>
+                New Patient
+            </a>
+            <a class="nav-link" href="patient.html">
+                <i class="fa-solid fa-file-medical"></i>
+                Regular Intake
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            <a class="nav-link" href="index.html" style="color:#ef4444;">
+                <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                Exit
+            </a>
+        </div>
     </nav>
 
-    <div class="main-content">
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
         <div class="top-bar">
             <div class="page-title">
-                <i class="fa-solid fa-siren-on fa-beat"></i> EMERGENCY PATIENT INTAKE
+                <i class="fa-solid fa-siren"></i>
+                EMERGENCY PATIENT INTAKE
             </div>
-            <div style="font-weight:600; color:var(--error);">CRITICAL PRIORITY</div>
+            <div class="priority-badge">Critical Priority</div>
         </div>
 
-        <div class="scroll-area">
+        <div class="content-area">
             <div class="intake-card">
                 <div class="emergency-banner">
                     <i class="fa-solid fa-triangle-exclamation"></i>
                     <div>
-                        <strong>Emergency Registration System</strong><br>
-                        <span style="font-size:0.9rem; color:var(--text-muted);">All patients are treated as
-                            CRITICAL/EMERGENCY priority by default</span>
+                        <strong>Emergency Registration System</strong>
+                        <span>All patients are treated as CRITICAL/EMERGENCY priority by default. Please fill in all required information accurately.</span>
                     </div>
                 </div>
 
-                <h2 style="margin-top:0; color:var(--error);">Patient Information</h2>
-
                 <form id="emergencyForm">
+                    <h3 class="section-title">Patient Information</h3>
                     <div class="form-grid">
                         <div class="form-group">
                             <label>First Name <span class="required">*</span></label>
@@ -402,22 +821,18 @@
                         </div>
                     </div>
 
-                    <h3 style="margin-top:30px; color:var(--error);">Medical Condition</h3>
+                    <h3 class="section-title">Medical Condition</h3>
                     <div class="form-grid">
                         <div class="form-group form-full">
-                            <label>Problem Description <span class="required">*</span></label>
-                            <textarea id="problemDescription" required
-                                placeholder="Describe the emergency situation, symptoms, and what happened..."></textarea>
-                        </div>
-                        <div class="form-group form-full">
-                            <label>Additional Symptoms</label>
-                            <textarea id="symptoms" rows="3"
-                                placeholder="Any additional symptoms or medical history..."></textarea>
+                            <label>Medical History & Symptoms <span class="required">*</span></label>
+                            <textarea id="problemDescription" required rows="5"
+                                placeholder="Describe the emergency situation, symptoms, medical conditions, and what happened. Include any existing medical conditions, medications, and relevant history..."></textarea>
                         </div>
                     </div>
 
                     <button type="submit" class="btn-emergency">
-                        <i class="fa-solid fa-hospital-user"></i> REGISTER EMERGENCY PATIENT
+                        <i class="fa-solid fa-hospital-user"></i>
+                        REGISTER EMERGENCY PATIENT
                     </button>
                 </form>
 
@@ -428,6 +843,82 @@
     </div>
 
     <script>
+        const API_BASE = 'http://127.0.0.1:8000/api/v1';
+        const USE_MOCK_ON_ERROR = false;
+        const REQUEST_TIMEOUT_MS = 12000;
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+            document.querySelector('.sidebar-overlay').classList.toggle('active');
+        }
+
+        function logEvent(step, payload) {
+            console.log(`[Emergency Intake] ${step}`, payload || '');
+        }
+
+        function showUserError(message) {
+            const statusDiv = document.getElementById('statusMessages');
+            statusDiv.innerHTML = `<div class="message-item message-error"><i class="fa-solid fa-circle-xmark"></i> ${message}</div>`;
+            statusDiv.classList.add('show');
+        }
+
+        function validateEmergencyForm(formData) {
+            const missing = [];
+            if (!formData.first_name) missing.push('First Name');
+            if (!formData.last_name) missing.push('Last Name');
+            if (!formData.dob) missing.push('Date of Birth');
+            if (!formData.gender) missing.push('Gender');
+            if (!formData.contact_number) missing.push('Contact Number');
+            if (!formData.problem_description || formData.problem_description.trim().length < 10) missing.push('Problem Description (min 10 chars)');
+
+            const contactDigits = (formData.contact_number || '').replace(/\D/g, '');
+            if (formData.contact_number && contactDigits.length < 10) {
+                missing.push('Valid Contact Number (10 digits)');
+            }
+            return missing;
+        }
+
+        async function fetchWithTimeout(url, options, timeoutMs) {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                return await fetch(url, { ...options, signal: controller.signal });
+            } finally {
+                clearTimeout(timeoutId);
+            }
+        }
+
+        function buildMockEmergencyResponse(formData) {
+            return {
+                registration_status: 'partial',
+                overall_message: '⚠️ MOCK RESPONSE - Backend unreachable, showing simulated allocation',
+                patient_created: true,
+                doctor_assigned: true,
+                room_assigned: false,
+                appointment_created: false,
+                patient_id: Math.floor(Math.random() * 9000) + 1000,
+                predicted_department: 'Orthopedics',
+                severity: 'CRITICAL',
+                assigned_doctor: {
+                    full_name: 'Dr. Mock Orthopedics',
+                    room_number: 'N/A',
+                    consultation_fee: 500,
+                    department: 'Orthopedics',
+                    status: 'available'
+                },
+                assigned_room: {
+                    status: 'unavailable'
+                },
+                messages: [
+                    '⚠️ Backend unreachable - using mock response',
+                    `✅ PATIENT REGISTERED (Mock) - ${formData.first_name} ${formData.last_name}`,
+                    '✅ DOCTOR ASSIGNED (Mock)',
+                    '⚠️ ROOM NOT AVAILABLE (Mock)'
+                ]
+            };
+        }
+
         document.getElementById('emergencyForm').addEventListener('submit', async function (e) {
             e.preventDefault();
 
@@ -441,71 +932,112 @@
             resultsDiv.innerHTML = '';
             resultsDiv.classList.remove('show');
 
+            const formData = {
+                first_name: document.getElementById('firstName').value.trim(),
+                last_name: document.getElementById('lastName').value.trim(),
+                dob: document.getElementById('dob').value,
+                gender: document.getElementById('gender').value,
+                blood_group: document.getElementById('bloodGroup').value || null,
+                contact_number: document.getElementById('contactNumber').value.trim(),
+                emergency_contact: document.getElementById('emergencyContact').value.trim() || null,
+                emergency_contact_name: document.getElementById('emergencyContactName').value.trim() || null,
+                email: document.getElementById('email').value.trim() || null,
+                address: document.getElementById('address').value.trim() || null,
+                city: document.getElementById('city').value.trim() || null,
+                state: document.getElementById('state').value.trim() || null,
+                pincode: document.getElementById('pincode').value.trim() || null,
+                problem_description: document.getElementById('problemDescription').value.trim(),
+                symptoms: document.getElementById('problemDescription').value.trim()
+            };
+
+            logEvent('Button click', { action: 'REGISTER_EMERGENCY_PATIENT' });
+            logEvent('Request payload', formData);
+
+            const missing = validateEmergencyForm(formData);
+            if (missing.length > 0) {
+                showUserError(`Please complete required fields: ${missing.join(', ')}`);
+                logEvent('Validation failed', missing);
+                return;
+            }
+
             // Disable button
             btn.disabled = true;
-            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> PROCESSING EMERGENCY...';
+            btn.innerHTML = '<div class="loading-spinner"></div> PROCESSING EMERGENCY...';
+
+            let data = null;
 
             try {
-                const formData = {
-                    first_name: document.getElementById('firstName').value,
-                    last_name: document.getElementById('lastName').value,
-                    dob: document.getElementById('dob').value,
-                    gender: document.getElementById('gender').value,
-                    blood_group: document.getElementById('bloodGroup').value || null,
-                    contact_number: document.getElementById('contactNumber').value,
-                    emergency_contact: document.getElementById('emergencyContact').value || null,
-                    emergency_contact_name: document.getElementById('emergencyContactName').value || null,
-                    email: document.getElementById('email').value || null,
-                    address: document.getElementById('address').value || null,
-                    city: document.getElementById('city').value || null,
-                    state: document.getElementById('state').value || null,
-                    pincode: document.getElementById('pincode').value || null,
-                    problem_description: document.getElementById('problemDescription').value,
-                    symptoms: document.getElementById('symptoms').value || null
-                };
-
-                const response = await fetch('http://127.0.0.1:8000/emergency-intake', {
+                const response = await fetchWithTimeout(`${API_BASE}/emergency-intake`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(formData)
-                });
-
-                const data = await response.json();
+                }, REQUEST_TIMEOUT_MS);
 
                 if (!response.ok) {
-                    throw new Error(data.detail || 'Registration failed');
+                    const err = await response.json().catch(() => ({}));
+                    throw new Error(err.detail || `Request failed (${response.status})`);
                 }
 
-                // Display status messages
-                displayMessages(data);
-
-                // Display results
-                displayResults(data);
-
-                // Scroll to results
-                resultsDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                data = await response.json();
+                logEvent('API response', data);
 
             } catch (error) {
-                statusDiv.innerHTML = `<div class="message-item message-error">❌ ERROR: ${error.message}</div>`;
-                statusDiv.classList.add('show');
+                logEvent('API error', error.message);
+
+                if (USE_MOCK_ON_ERROR) {
+                    data = buildMockEmergencyResponse(formData);
+                    logEvent('Mock response used', data);
+                } else {
+                    showUserError(`Backend error: ${error.message}`);
+                    return;
+                }
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-hospital-user"></i> REGISTER EMERGENCY PATIENT';
+            }
+
+            if (!data) {
+                showUserError('No response received from server.');
+                return;
+            }
+
+            // Display status messages
+            displayMessages(data);
+
+            // Display results
+            displayResults(data);
+
+            // Scroll to results on mobile
+            if (window.innerWidth <= 768) {
+                statusDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         });
 
         function displayMessages(data) {
             const statusDiv = document.getElementById('statusMessages');
-            statusDiv.innerHTML = '<h3 style="margin-top:0;">Registration Progress:</h3>';
+            statusDiv.innerHTML = '<h3><i class="fa-solid fa-list-check"></i> Registration Progress</h3>';
 
             if (data.messages && data.messages.length > 0) {
                 data.messages.forEach(msg => {
                     let className = 'message-success';
-                    if (msg.includes('❌')) className = 'message-error';
-                    else if (msg.includes('⚠️')) className = 'message-warning';
+                    let icon = 'fa-check-circle';
+                    if (msg.includes('❌')) {
+                        className = 'message-error';
+                        icon = 'fa-circle-xmark';
+                    } else if (msg.includes('⚠️')) {
+                        className = 'message-warning';
+                        icon = 'fa-triangle-exclamation';
+                    }
 
-                    statusDiv.innerHTML += `<div class="message-item ${className}">${msg}</div>`;
+                    statusDiv.innerHTML += `<div class="message-item ${className}"><i class="fa-solid ${icon}"></i> ${msg}</div>`;
                 });
+            }
+
+            if (data.assigned_room && data.assigned_room.status !== 'assigned') {
+                statusDiv.innerHTML += '<div class="message-item message-warning"><i class="fa-solid fa-triangle-exclamation"></i> Room allocation not possible at the moment. Patient moved to priority waiting.</div>';
+            }
+            if (data.assigned_doctor && data.assigned_doctor.status !== 'available') {
+                statusDiv.innerHTML += '<div class="message-item message-warning"><i class="fa-solid fa-triangle-exclamation"></i> Doctor not immediately available. On-call team alerted.</div>';
             }
 
             statusDiv.classList.add('show');
@@ -515,7 +1047,7 @@
             const resultsDiv = document.getElementById('resultsCard');
 
             if (data.registration_status === 'complete' || data.registration_status === 'partial') {
-                let html = `<div class="result-header">${data.overall_message}</div>`;
+                let html = `<div class="result-header"><i class="fa-solid fa-clipboard-check"></i> ${data.overall_message}</div>`;
                 html += '<div class="result-grid">';
 
                 // Patient ID
@@ -555,11 +1087,8 @@
                             <div class="result-item">
                                 <div class="result-item-label">Assigned Doctor</div>
                                 <div class="result-item-value" style="color:var(--success);">
-                                    ${data.assigned_doctor.full_name}<br>
-                                    <span style="font-size:0.85rem; color:var(--text-muted);">
-                                        Room: ${data.assigned_doctor.room_number || 'N/A'}<br>
-                                        Fee: ₹${data.assigned_doctor.consultation_fee}
-                                    </span>
+                                    ${data.assigned_doctor.full_name}
+                                    <small>Room: ${data.assigned_doctor.room_number || 'N/A'} | Fee: ₹${data.assigned_doctor.consultation_fee}</small>
                                 </div>
                             </div>
                         `;
@@ -573,26 +1102,33 @@
                     }
                 }
 
-                // Room
+                // Room Allocation - Prominent Display
                 if (data.assigned_room) {
                     if (data.assigned_room.status === 'assigned') {
                         html += `
-                            <div class="result-item">
-                                <div class="result-item-label">Assigned Room</div>
-                                <div class="result-item-value" style="color:var(--success);">
-                                    ${data.assigned_room.room_number}<br>
-                                    <span style="font-size:0.85rem; color:var(--text-muted);">
-                                        ${data.assigned_room.room_type}<br>
-                                        Wing ${data.assigned_room.wing}, Floor ${data.assigned_room.floor}
-                                    </span>
+                            <div class="result-item" style="background:#dcfce7; padding:16px; border-radius:8px; border:2px solid var(--success);">
+                                <div class="result-item-label" style="color:var(--text-primary);">🛏️ Room Number</div>
+                                <div class="result-item-value" style="color:#166534; font-weight:700; font-size:1.8rem;">
+                                    ${data.assigned_room.room_number}
+                                </div>
+                                <div style="font-size:0.85rem; color:#166534; margin-top:8px;">
+                                    <i class="fa-solid fa-check-circle"></i> ${data.assigned_room.room_type} | Wing ${data.assigned_room.wing}, Floor ${data.assigned_room.floor}
+                                </div>
+                                <div style="font-size:0.85rem; color:#166534; margin-top:4px;">
+                                    <i class="fa-solid fa-door-open"></i> Room confirmed and ready for patient
                                 </div>
                             </div>
                         `;
                     } else {
                         html += `
-                            <div class="result-item">
-                                <div class="result-item-label">Room Status</div>
-                                <div class="result-item-value" style="color:var(--error);">Room Not Available</div>
+                            <div class="result-item" style="background:#fef9c3; padding:16px; border-radius:8px; border:2px solid var(--warning);">
+                                <div class="result-item-label" style="color:var(--text-primary);">🛏️ Room Allocation</div>
+                                <div class="result-item-value" style="color:#854d0e; font-weight:700;">
+                                    Waiting for available room
+                                </div>
+                                <div style="font-size:0.85rem; color:#854d0e; margin-top:8px;">
+                                    <i class="fa-solid fa-hourglass-end"></i> Patient on priority waiting list - room will be assigned soon
+                                </div>
                             </div>
                         `;
                     }

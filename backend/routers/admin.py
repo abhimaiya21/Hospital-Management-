@@ -23,8 +23,8 @@ class DoctorModel(BaseModel):
     specialty: str
     email: str
     phone_contact: str
-    department_id: int
-    seniority_level: str
+    department_id: Optional[int] = None
+    seniority_level: str = "Junior"
 
 class PatientModel(BaseModel):
     first_name: str
@@ -254,7 +254,19 @@ def add_doctor(doc: DoctorModel):
 
 @router.put("/doctors/{id}")
 def update_doctor(id: int, doc: DoctorModel):
-    sql = f"UPDATE doctors SET first_name='{doc.first_name}', last_name='{doc.last_name}', specialty='{doc.specialty}', email='{doc.email}', phone_contact='{doc.phone_contact}', seniority_level='{doc.seniority_level}' WHERE doctor_id={id}"
+    # Build dynamic update query
+    update_parts = [
+        f"first_name='{doc.first_name}'",
+        f"last_name='{doc.last_name}'",
+        f"specialty='{doc.specialty}'",
+        f"email='{doc.email}'",
+        f"phone_contact='{doc.phone_contact}'",
+        f"seniority_level='{doc.seniority_level}'"
+    ]
+    if doc.department_id:
+        update_parts.append(f"department_id={doc.department_id}")
+    
+    sql = f"UPDATE doctors SET {', '.join(update_parts)} WHERE doctor_id={id}"
     execute_query(sql)
     log_audit("admin", "admin", f"Updated Doctor ID: {id}", "SUCCESS")
     return {"message": "Doctor updated"}
@@ -271,7 +283,7 @@ def delete_doctor(id: int):
 def get_patients():
     """
     Get top 50 patients showing MIXED status (Active, Discharged, Registered).
-    Uses LEFT JOIN so we see everyone, regardless of whether they have a doctor assigned.
+    Uses LEFT JOIN with BOTH admissions AND appointments to catch all patients.
     """
     sql = """
     SELECT 
@@ -289,28 +301,44 @@ def get_patients():
         -- Calculate Age dynamically
         EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.dob)) as age,
 
-        -- Assigned Doctor Name (Unassigned if NULL)
-        COALESCE(d.first_name || ' ' || d.last_name, 'Unassigned') as assigned_doctor,
+        -- Assigned Doctor Name (from appointments OR admissions)
+        COALESCE(
+            d_appt.first_name || ' ' || d_appt.last_name,
+            d_adm.first_name || ' ' || d_adm.last_name,
+            'Unassigned'
+        ) as assigned_doctor,
 
-        -- Room Number (Waiting if NULL)
-        COALESCE(r.room_number, 'Waiting') as room_no,
+        -- Room Number (from appointments OR admissions)
+        COALESCE(r_appt.room_number, r_adm.room_number, 'Waiting') as room_no,
 
-        -- Status (Active, Discharged, or Default to Registered)
-        COALESCE(a.status, 'Registered') as status
+        -- Status (from admissions or appointments)
+        COALESCE(adm.status, appt.status, 'Registered') as status
 
     FROM patients p
     
-    -- LEFT JOIN with latest admissions (Active OR Historical)
+    -- LEFT JOIN with latest appointments (Emergency intake creates appointments)
+    LEFT JOIN (
+        SELECT DISTINCT ON (patient_id) * FROM appointments 
+        ORDER BY patient_id, appointment_date DESC
+    ) appt ON p.patient_id = appt.patient_id
+    
+    -- LEFT JOIN Doctors from appointments
+    LEFT JOIN doctors d_appt ON appt.doctor_id = d_appt.doctor_id
+    
+    -- LEFT JOIN Rooms from appointments
+    LEFT JOIN rooms r_appt ON appt.room_id = r_appt.room_id
+    
+    -- LEFT JOIN with latest admissions (Traditional admissions)
     LEFT JOIN (
         SELECT DISTINCT ON (patient_id) * FROM admissions 
         ORDER BY patient_id, admission_date DESC
-    ) a ON p.patient_id = a.patient_id
+    ) adm ON p.patient_id = adm.patient_id
 
-    -- LEFT JOIN Doctors
-    LEFT JOIN doctors d ON a.primary_doctor_id = d.doctor_id
+    -- LEFT JOIN Doctors from admissions
+    LEFT JOIN doctors d_adm ON adm.primary_doctor_id = d_adm.doctor_id
 
-    -- LEFT JOIN Rooms
-    LEFT JOIN rooms r ON a.room_id = r.room_id
+    -- LEFT JOIN Rooms from admissions
+    LEFT JOIN rooms r_adm ON adm.room_id = r_adm.room_id
 
     ORDER BY p.patient_id DESC
     LIMIT 50
@@ -332,8 +360,47 @@ def add_patient(pat: PatientModel):
 
 @router.put("/patients/{id}")
 def update_patient(id: int, pat: PatientModel):
+    # Update basic patient info
     sql = f"UPDATE patients SET first_name='{pat.first_name}', last_name='{pat.last_name}', dob='{pat.dob}', gender='{pat.gender}', contact_number='{pat.contact_number}', address='{pat.address}', insurance_provider='{pat.insurance_provider}' WHERE patient_id={id}"
     execute_query(sql)
+    
+    # Update appointment/assignment if doctor_id or room_number is provided
+    if pat.doctor_id or pat.room_number or pat.status:
+        # Check if patient has an appointment
+        appointment_check = execute_query(f"SELECT appointment_id FROM appointments WHERE patient_id={id} ORDER BY appointment_date DESC LIMIT 1")
+        
+        if appointment_check and len(appointment_check) > 0:
+            # Update existing appointment
+            update_parts = []
+            if pat.doctor_id:
+                update_parts.append(f"doctor_id={pat.doctor_id}")
+            if pat.room_number:
+                update_parts.append(f"room_no='{pat.room_number}'")
+            if pat.status:
+                update_parts.append(f"status='{pat.status}'")
+            
+            if update_parts:
+                appt_id = appointment_check[0]['appointment_id']
+                update_sql = f"UPDATE appointments SET {', '.join(update_parts)} WHERE appointment_id={appt_id}"
+                execute_query(update_sql)
+        else:
+            # Check admissions table
+            admission_check = execute_query(f"SELECT admission_id FROM admissions WHERE patient_id={id} ORDER BY admission_date DESC LIMIT 1")
+            if admission_check and len(admission_check) > 0:
+                update_parts = []
+                if pat.room_number:
+                    # Find room_id from room number
+                    room_lookup = execute_query(f"SELECT room_id FROM rooms WHERE room_number='{pat.room_number}' LIMIT 1")
+                    if room_lookup and len(room_lookup) > 0:
+                        update_parts.append(f"room_id={room_lookup[0]['room_id']}")
+                if pat.status:
+                    update_parts.append(f"status='{pat.status}'")
+                
+                if update_parts:
+                    adm_id = admission_check[0]['admission_id']
+                    update_sql = f"UPDATE admissions SET {', '.join(update_parts)} WHERE admission_id={adm_id}"
+                    execute_query(update_sql)
+    
     log_audit("admin", "admin", f"Updated Patient ID: {id}", "SUCCESS")
     return {"message": "Patient updated"}
 

@@ -307,6 +307,33 @@ CREATE TABLE lab_tests (
     technician_notes TEXT
 );
 
+-- 15. TRIAGE_RESULTS TABLE (AI Analysis History - NEW)
+-- ✅ NEW: Store all AI triage analysis results with multilingual explanations
+CREATE TABLE triage_results (
+    triage_id SERIAL PRIMARY KEY,
+    symptoms TEXT NOT NULL,
+    patient_id INT REFERENCES patients(patient_id) ON DELETE CASCADE,
+    patient_age INT,
+    patient_gender VARCHAR(20),
+    medical_category VARCHAR(50) NOT NULL,
+    severity VARCHAR(20) NOT NULL CHECK (severity IN ('LOW', 'MEDIUM', 'HIGH', 'CRITICAL')),
+    assigned_doctor VARCHAR(100),
+    room_allotted VARCHAR(50),
+    triage_status VARCHAR(20) NOT NULL CHECK (triage_status IN ('ASSIGN', 'REFER', 'ADMITTED')),
+    explanation_en TEXT,
+    explanation_kn TEXT,
+    explanation_hi TEXT,
+    detected_language VARCHAR(10),
+    confidence_score DECIMAL(5,2),
+    model_version VARCHAR(10),
+    analysis_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Indexes for triage_results (performance optimization)
+CREATE INDEX idx_triage_patient_id ON triage_results(patient_id);
+CREATE INDEX idx_triage_severity ON triage_results(severity);
+CREATE INDEX idx_triage_timestamp ON triage_results(analysis_timestamp DESC);
+
 TRUNCATE TABLE 
     invoices, 
     allergies, 

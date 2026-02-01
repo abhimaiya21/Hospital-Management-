@@ -69,7 +69,7 @@
 
             // 3. Check Admin Endpoint (Corrected Path)
             try {
-                const res = await fetch('http://127.0.0.1:8000/admin/analytics');
+                const res = await fetch('http://127.0.0.1:8000/api/v1/admin/analytics');
                 if (res.ok) {
                     const data = await res.json();
                     if (data.counts) log('API_ADMIN', 'Admin Analytics Valid', true);
@@ -83,14 +83,14 @@
 
             // 4. Check Doctor Endpoint
             try {
-                const res = await fetch('http://127.0.0.1:8000/doctor/analytics');
+                const res = await fetch('http://127.0.0.1:8000/api/v1/doctor/analytics');
                 if (res.ok) log('API_DOCTOR', 'Doctor Analytics Valid', true);
                 else log('API_DOCTOR', 'Endpoint Error ' + res.status, false);
             } catch (e) { log('API_DOCTOR', 'Fetch Failed', false); }
 
             // 5. Check Billing Endpoint
             try {
-                const res = await fetch('http://127.0.0.1:8000/billing/analytics');
+                const res = await fetch('http://127.0.0.1:8000/api/v1/billing/analytics');
                 if (res.ok) log('API_BILLING', 'Billing Analytics Valid', true);
                 else log('API_BILLING', 'Endpoint Error ' + res.status, false);
             } catch (e) { log('API_BILLING', 'Fetch Failed', false); }
