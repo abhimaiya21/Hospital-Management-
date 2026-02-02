@@ -293,6 +293,7 @@ def get_patients():
         p.patient_id,
         p.first_name,
         p.last_name,
+        p.dob,
         p.gender,
         p.contact_number,
         p.address,
@@ -300,6 +301,9 @@ def get_patients():
         
         -- Calculate Age dynamically
         EXTRACT(YEAR FROM AGE(CURRENT_DATE, p.dob)) as age,
+
+        -- Assigned Doctor ID (for edit mode)
+        COALESCE(d_appt.doctor_id, d_adm.doctor_id) as doctor_id,
 
         -- Assigned Doctor Name (from appointments OR admissions)
         COALESCE(
@@ -375,7 +379,10 @@ def update_patient(id: int, pat: PatientModel):
             if pat.doctor_id:
                 update_parts.append(f"doctor_id={pat.doctor_id}")
             if pat.room_number:
-                update_parts.append(f"room_no='{pat.room_number}'")
+                # Find room_id from room number
+                room_lookup = execute_query(f"SELECT room_id FROM rooms WHERE room_number='{pat.room_number}' LIMIT 1")
+                if room_lookup and len(room_lookup) > 0:
+                    update_parts.append(f"room_id={room_lookup[0]['room_id']}")
             if pat.status:
                 update_parts.append(f"status='{pat.status}'")
             

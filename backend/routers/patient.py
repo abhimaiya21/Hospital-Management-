@@ -62,20 +62,25 @@ def patient_login(request: PatientLoginRequest):
         if request.patient_id <= 0:
             raise HTTPException(status_code=400, detail="Invalid patient ID")
         
+        # Debug: log the input values
+        print(f"🔍 Login attempt - Patient ID: {request.patient_id} (type: {type(request.patient_id).__name__}), Mobile: {request.mobile_number.strip()}")
+        
         # Verify credentials against database
         patient = verify_patient_login(request.patient_id, request.mobile_number.strip())
         
         if not patient:
+            print(f"❌ Login failed - No patient found for ID {request.patient_id} and mobile {request.mobile_number.strip()}")
             return {
                 "status": "failed",
                 "message": "Invalid Patient ID or Mobile Number. Please check your credentials."
             }
         
         # Successful login
+        print(f"✅ Login successful for patient: {patient['first_name']} {patient['last_name']}")
         return {
             "status": "success",
             "message": "Login successful",
-            "redirect_url": "patient.html",
+            "redirect_url": "/frontend/patient.html",
             "patient": {
                 "patient_id": patient['patient_id'],
                 "full_name": patient['full_name'],
@@ -90,10 +95,10 @@ def patient_login(request: PatientLoginRequest):
         
     except HTTPException:
         raise
-    except HTTPException:
-        raise
     except Exception as e:
         print(f"❌ Patient Login Error: {e}")
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"Login failed due to server error: {str(e)}")
 
 

@@ -952,7 +952,7 @@
             btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Verifying...';
 
             try {
-                const res = await fetch("http://127.0.0.1:8000/api/v1/admin/login", {
+                const res = await fetch("http://127.0.0.1:8000/api/v1/login", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
@@ -962,18 +962,26 @@
                 });
 
                 const data = await res.json();
+                console.log("Login response:", data);
 
                 if (res.ok && data.status === "success") {
+                    // Hide error message on success
+                    errorDiv.style.display = 'none';
+                    
                     // Store patient info in sessionStorage
                     sessionStorage.setItem("hospitalUser", data.patient.full_name);
                     sessionStorage.setItem("hospitalRole", "patient");
                     sessionStorage.setItem("patientId", data.patient.patient_id);
                     sessionStorage.setItem("patientData", JSON.stringify(data.patient));
 
+                    // Show success message
+                    btn.innerHTML = '<i class="fa-solid fa-check"></i> Success! Redirecting...';
+                    btn.style.background = '#10b981';
+
                     // Redirect to patient portal
                     setTimeout(() => {
                         window.location.href = data.redirect_url;
-                    }, 500);
+                    }, 800);
                 } else {
                     throw new Error(data.message || "Invalid Patient ID or Mobile Number");
                 }

@@ -174,10 +174,12 @@ def verify_patient_login(patient_id, mobile_number):
                   AND is_active = TRUE
             """
             
+            print(f"🔐 Verifying login - ID: {patient_id} (type: {type(patient_id).__name__}), Mobile: '{mobile_number}'")
             cursor.execute(query, (patient_id, mobile_number))
             patient = cursor.fetchone()
             
             if patient:
+                print(f"✅ Patient found: {patient['first_name']} {patient['last_name']} (Contact: {patient['contact_number']})")
                 return {
                     "patient_id": patient['patient_id'],
                     "first_name": patient['first_name'],
@@ -190,6 +192,7 @@ def verify_patient_login(patient_id, mobile_number):
                     "blood_group": patient['blood_group'],
                     "is_active": patient['is_active']
                 }
+            print(f"❌ No patient found matching ID {patient_id} and mobile {mobile_number}")
             return None
             
     except Exception as e:

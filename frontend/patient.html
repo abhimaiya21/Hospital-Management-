@@ -16,34 +16,34 @@
             --primary-light: #60a5fa;
             --primary-dark: #2563eb;
             --primary-gradient: linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%);
-            
+
             --success: #10b981;
             --warning: #f59e0b;
             --danger: #ef4444;
-            
+
             --bg-primary: #f8fafc;
             --bg-secondary: #f1f5f9;
             --bg-card: #ffffff;
-            
+
             --sidebar-bg: #0f172a;
             --sidebar-hover: rgba(255, 255, 255, 0.05);
             --sidebar-active: rgba(59, 130, 246, 0.15);
-            
+
             --text-primary: #1e293b;
             --text-secondary: #64748b;
             --text-muted: #94a3b8;
-            
+
             --border-color: #e2e8f0;
             --border-light: #f1f5f9;
-            
+
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
             --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
-            
+
             --radius-sm: 8px;
             --radius-md: 12px;
             --radius-lg: 16px;
-            
+
             --transition-fast: 0.15s ease;
             --transition-base: 0.25s ease;
         }
@@ -480,6 +480,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -579,7 +580,9 @@
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
 
         /* ============================================
@@ -692,8 +695,36 @@
                 font-size: 0.85rem;
             }
         }
+
+        /* Language Toggle in Header */
+        .lang-toggle {
+            display: flex;
+            background: #f1f5f9;
+            padding: 4px;
+            border-radius: 8px;
+            margin-right: 16px;
+            border: 1px solid #e2e8f0;
+        }
+
+        .lang-btn {
+            border: none;
+            background: transparent;
+            padding: 6px 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .lang-btn.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
     </style>
-<base target="_blank">
+    <base target="_blank">
 </head>
 
 <body>
@@ -715,26 +746,26 @@
     <nav class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <i class="fa-solid fa-hospital-user"></i>
-            MediPortal Patient
+            <span data-i18n="portalTitle">MediPortal Patient</span>
         </div>
         <div class="sidebar-nav">
             <a class="nav-link active">
                 <i class="fa-solid fa-file-medical"></i>
-                Intake Form
+                <span data-i18n="navIntake">Intake Form</span>
             </a>
             <a class="nav-link">
                 <i class="fa-solid fa-user-clock"></i>
-                Appointments
+                <span data-i18n="navAppointments">Appointments</span>
             </a>
             <a class="nav-link">
                 <i class="fa-solid fa-file-invoice"></i>
-                My Bills
+                <span data-i18n="navBills">My Bills</span>
             </a>
         </div>
         <div class="sidebar-footer">
             <a class="nav-link" href="index.html" style="color:#ef4444;">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i>
-                Exit Portal
+                <span data-i18n="navExit">Exit Portal</span>
             </a>
         </div>
     </nav>
@@ -742,85 +773,95 @@
     <!-- CONTENT -->
     <div class="main-wrapper">
         <div class="top-bar">
-            <div class="page-title">New Patient Intake</div>
-            <div class="user-info">Guest User</div>
+            <div class="page-title" data-i18n="pageTitle">New Patient Intake</div>
+            <div style="display: flex; align-items: center;">
+                <div class="lang-toggle">
+                    <button class="lang-btn active" onclick="changeLanguage('en')">EN</button>
+                    <button class="lang-btn" onclick="changeLanguage('hi')">HI</button>
+                    <button class="lang-btn" onclick="changeLanguage('kn')">KN</button>
+                </div>
+                <div class="user-info" data-i18n="guestUser">Guest User</div>
+            </div>
         </div>
 
         <div class="content-area">
             <div class="intake-card">
                 <div class="card-header">
-                    <h2 class="card-title">Describe Your Condition</h2>
-                    <p class="card-subtitle">Please provide details about your symptoms in your own words. Our AI will assess your needs and guide you to the right care.</p>
+                    <h2 class="card-title" data-i18n="cardTitle">Describe Your Condition</h2>
+                    <p class="card-subtitle" data-i18n="cardSubtitle">Please provide details about your symptoms in your
+                        own words. Our AI will assess your needs and guide you to the right care.</p>
                 </div>
 
                 <div class="form-grid">
                     <div class="form-group">
-                        <label>First Name *</label>
+                        <label data-i18n="lblFirstName">First Name *</label>
                         <input type="text" id="firstName" placeholder="First Name">
                     </div>
                     <div class="form-group">
-                        <label>Last Name *</label>
+                        <label data-i18n="lblLastName">Last Name *</label>
                         <input type="text" id="lastName" placeholder="Last Name">
                     </div>
                     <div class="form-group">
-                        <label>Date of Birth *</label>
+                        <label data-i18n="lblDob">Date of Birth *</label>
                         <input type="date" id="dob">
                     </div>
                     <div class="form-group">
-                        <label>Gender *</label>
+                        <label data-i18n="lblGender">Gender *</label>
                         <select id="gender">
-                            <option value="">Select</option>
-                            <option value="Male">Male</option>
-                            <option value="Female">Female</option>
-                            <option value="Other">Other</option>
+                            <option value="" data-i18n="optSelect">Select</option>
+                            <option value="Male" data-i18n="optMale">Male</option>
+                            <option value="Female" data-i18n="optFemale">Female</option>
+                            <option value="Other" data-i18n="optOther">Other</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Contact Number *</label>
+                        <label data-i18n="lblContact">Contact Number *</label>
                         <input type="tel" id="contactNumber" placeholder="10-digit mobile">
                     </div>
                     <div class="form-group">
-                        <label>Insurance Provider</label>
+                        <label data-i18n="lblInsurance">Insurance Provider</label>
                         <input type="text" id="insuranceProvider" placeholder="Provider name">
                     </div>
                     <div class="form-group form-full">
-                        <label>Address</label>
+                        <label data-i18n="lblAddress">Address</label>
                         <input type="text" id="address" placeholder="Street, City, State">
                     </div>
                 </div>
 
                 <div class="textarea-wrapper">
                     <i class="fa-solid fa-pen-to-square"></i>
-                    <textarea id="symptoms" placeholder="Example: I have severe stomach pain on the right side and feel nauseous..."></textarea>
+                    <textarea id="symptoms"
+                        placeholder="Example: I have severe stomach pain on the right side and feel nauseous..."></textarea>
                 </div>
 
                 <button class="btn-submit" id="analyzeBtn" onclick="analyze()">
                     <i class="fa-solid fa-stethoscope"></i>
-                    Analyze & Assign
+                    <span data-i18n="btnAnalyze">Analyze & Assign</span>
                 </button>
                 <button class="btn-secondary" id="viewAllocationBtn" onclick="viewAllocation()">
                     <i class="fa-solid fa-clipboard-list"></i>
-                    View Allocation
+                    <span data-i18n="btnView">View Allocation</span>
                 </button>
 
+                <!-- ... Existing Results Code ... -->
                 <div id="statusMessages" class="status-messages"></div>
 
                 <div id="resultsArea" class="results-section">
                     <div class="results-grid">
                         <div class="result-box">
-                            <div class="result-label">Predicted Specialization</div>
+                            <div class="result-label" data-i18n="resSpec">Predicted Specialization</div>
                             <div class="result-val" id="resSpec">--</div>
                         </div>
                         <div class="result-box">
-                            <div class="result-label">Severity Level</div>
+                            <div class="result-label" data-i18n="resSev">Severity Level</div>
                             <div class="result-val"><span id="resSev" class="badge">--</span></div>
                         </div>
                         <div class="result-box">
-                            <div class="result-label">Assigned Doctor</div>
+                            <div class="result-label" data-i18n="resDoc">Assigned Doctor</div>
                             <div class="result-val" id="resDoc">--</div>
                         </div>
                         <div class="result-box">
-                            <div class="result-label">Room Allocation</div>
+                            <div class="result-label" data-i18n="resRoom">Room Allocation</div>
                             <div class="result-val" id="resRoom">--</div>
                         </div>
                         <div class="explanation" id="resExp"></div>
@@ -830,6 +871,7 @@
         </div>
     </div>
 
+    <!-- ... SCRIPTS ... -->
     <script>
         const API_BASE = 'http://127.0.0.1:8000/api/v1';
         const USE_MOCK_ON_ERROR = false;
@@ -864,7 +906,7 @@
                 analyzeBtn.disabled = true;
                 viewBtn.disabled = true;
             } else {
-                analyzeBtn.innerHTML = '<i class=\"fa-solid fa-stethoscope\"></i> Analyze & Assign';
+                analyzeBtn.innerHTML = '<i class=\"fa-solid fa-stethoscope\"></i> <span data-i18n=\"btnAnalyze\">Analyze & Assign</span>';
                 analyzeBtn.disabled = false;
                 viewBtn.disabled = false;
             }
@@ -1053,7 +1095,7 @@
                 ${explanation}
             `;
         }
-        
+
         async function analyze() {
             clearStatus();
             logEvent('Button click', { action: 'ANALYZE_AND_ASSIGN' });
@@ -1180,6 +1222,198 @@
                 setLoading(false);
             }
         }
+    </script>
+    <script>
+        /* Multi-language Logic */
+        const translations = {
+            en: {
+                portalTitle: "MediPortal Patient",
+                navIntake: "Intake Form",
+                navAppointments: "Appointments",
+                navBills: "My Bills",
+                navExit: "Exit Portal",
+                pageTitle: "New Patient Intake",
+                guestUser: "Guest User",
+                cardTitle: "Describe Your Condition",
+                cardSubtitle: "Please provide details about your symptoms in your own words. Our AI will assess your needs and guide you to the right care.",
+                lblFirstName: "First Name *",
+                lblLastName: "Last Name *",
+                lblDob: "Date of Birth *",
+                lblGender: "Gender *",
+                lblContact: "Contact Number *",
+                lblInsurance: "Insurance Provider",
+                lblAddress: "Address",
+                optSelect: "Select",
+                optMale: "Male",
+                optFemale: "Female",
+                optOther: "Other",
+                btnAnalyze: "Analyze & Assign",
+                btnView: "View Allocation",
+                resSpec: "Predicted Specialization",
+                resSev: "Severity Level",
+                resDoc: "Assigned Doctor",
+                resRoom: "Room Allocation"
+            },
+            hi: {
+                portalTitle: "मेडीपोर्टल रोगी",
+                navIntake: "पंजीकरण फॉर्म",
+                navAppointments: "नियुक्तियाँ",
+                navBills: "मेरे बिल",
+                navExit: "पोर्टल से बाहर निकलें",
+                pageTitle: "नया रोगी पंजीकरण",
+                guestUser: "अतिथि",
+                cardTitle: "अपनी स्थिति का वर्णन करें",
+                cardSubtitle: "कृपया अपने लक्षणों के बारे में अपने शब्दों में विस्तार से बताएं। हमारा एआई आपकी आवश्यकताओं का आकलन करेगा और आपको सही देखभाल के लिए मार्गदर्शन करेगा।",
+                lblFirstName: "पहला नाम *",
+                lblLastName: "अंतिम नाम *",
+                lblDob: "जन्म तिथि *",
+                lblGender: "लिंग *",
+                lblContact: "संपर्क नंबर *",
+                lblInsurance: "बीमा प्रदाता",
+                lblAddress: "पता",
+                optSelect: "चुनें",
+                optMale: "पुरुष",
+                optFemale: "महिला",
+                optOther: "अन्य",
+                btnAnalyze: "विश्लेषण और आवंटन",
+                btnView: "आवंटन देखें",
+                resSpec: "भविष्यवाणी विशेषज्ञता",
+                resSev: "गंभीरता स्तर",
+                resDoc: "नियत डॉक्टर",
+                resRoom: "कमरा आवंटन"
+            },
+            kn: {
+                portalTitle: "ಮೆಡಿಪೋರ್ಟಲ್ ರೋಗಿ",
+                navIntake: "ದಾಖಲಾತಿ ನಮೂನೆ",
+                navAppointments: "ನೇಮಕಾತಿಗಳು",
+                navBills: "ನನ್ನ ಬಿಲ್ಗಳು",
+                navExit: "ಪೋರ್ಟಲ್ ನಿರ್ಗಮನ",
+                pageTitle: "ಹೊಸ ರೋಗಿಯ ನೋಂದಣಿ",
+                guestUser: "ಅತಿಥಿ",
+                cardTitle: "ನಿಮ್ಮ ಸ್ಥಿತಿಯನ್ನು ವಿವರಿಸಿ",
+                cardSubtitle: "ದಯವಿಟ್ಟು ನಿಮ್ಮ ರೋಗಲಕ್ಷಣಗಳ ಬಗ್ಗೆ ವಿವರಗಳನ್ನು ನಿಮ್ಮ ಸ್ವಂತ ಮಾತುಗಳಲ್ಲಿ ನೀಡಿ. ನಮ್ಮ AI ನಿಮ್ಮ ಅಗತ್ಯಗಳನ್ನು ನಿರ್ಣಯಿಸುತ್ತದೆ ಮತ್ತು ನಿಮಗೆ ಸರಿಯಾದ ಚಿಕಿತ್ಸೆಗೆ ಮಾರ್ಗದರ್ಶನ ನೀಡುತ್ತದೆ.",
+                lblFirstName: "ಮೊದಲ ಹೆಸರು *",
+                lblLastName: "ಕೊನೆಯ ಹೆಸರು *",
+                lblDob: "ಜನ್ಮ ದಿನಾಂಕ *",
+                lblGender: "ಲಿಂಗ *",
+                lblContact: "ಸಂಪರ್ಕ ಸಂಖ್ಯೆ *",
+                lblInsurance: "ವಿಮೆ ಪೂರೈಕೆದಾರರು",
+                lblAddress: "ವಿಳಾಸ",
+                optSelect: "ಆಯ್ಕೆಮಾಡಿ",
+                optMale: "ಪುರುಷ",
+                optFemale: "ಮಹಿಳೆ",
+                optOther: "ಇತರೆ",
+                btnAnalyze: "ವಿಶ್ಲೇಷಣೆ ಮತ್ತು ನಿಯೋಜನೆ",
+                btnView: "ನಿಯೋಜನೆಯನ್ನು ವೀಕ್ಷಿಸಿ",
+                resSpec: "ಮುನ್ಸೂಚನೆಯ ವಿಶೇಷತೆ",
+                resSev: "ತೀವ್ರತೆಯ ಮಟ್ಟ",
+                resDoc: "ನಿಯೋಜಿತ ವೈದ್ಯರು",
+                resRoom: "ಕೊಠಡಿ ಹಂಚಿಕೆ"
+            }
+        };
+
+        function changeLanguage(lang) {
+            // Update active button state
+            document.querySelectorAll('.lang-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Update Text Content
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang][key]) {
+                    el.textContent = translations[lang][key];
+                }
+            });
+
+            // Update Placeholders (Optional logic if needed, simplied here)
+            if (lang === 'hi') {
+                document.getElementById('firstName').placeholder = "पहला नाम";
+                document.getElementById('lastName').placeholder = "अंतिम नाम";
+                document.getElementById('address').placeholder = "गली, शहर, राज्य";
+                document.getElementById('symptoms').placeholder = "उदाहरण: मुझे दाईं ओर पेट में तेज दर्द है...";
+            } else if (lang === 'kn') {
+                document.getElementById('firstName').placeholder = "ಮೊದಲ ಹೆಸರು";
+                document.getElementById('lastName').placeholder = "ಕೊನೆಯ ಹೆಸರು";
+                document.getElementById('address').placeholder = "ಬೀದಿ, ನಗರ, ರಾಜ್ಯ";
+                document.getElementById('symptoms').placeholder = "ಉದಾಹರಣೆ: ನನಗೆ ಬಲ ಬದಿಯಲ್ಲಿ ತೀವ್ರ ಹೊಟ್ಟೆ ನೋವು ಇದೆ...";
+            } else {
+                document.getElementById('firstName').placeholder = "First Name";
+                document.getElementById('lastName').placeholder = "Last Name";
+                document.getElementById('address').placeholder = "Street, City, State";
+                document.getElementById('symptoms').placeholder = "Example: I have severe stomach pain on the right side and feel nauseous...";
+            }
+        }
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Update Header with Logged-in User Name
+            const userInfoEl = document.querySelector('.user-info');
+            const loggedInUser = sessionStorage.getItem('hospitalUser');
+
+            if (loggedInUser && loggedInUser !== 'undefined') {
+                userInfoEl.textContent = loggedInUser;
+            }
+
+            // 2. Dynamic Update from Form Inputs
+            const firstNameInput = document.getElementById('firstName');
+            const lastNameInput = document.getElementById('lastName');
+
+            function updateHeaderName() {
+                const first = firstNameInput.value.trim();
+                const last = lastNameInput.value.trim();
+                if (first || last) {
+                    userInfoEl.textContent = `${first} ${last}`.trim();
+                } else if (loggedInUser) {
+                    userInfoEl.textContent = loggedInUser;
+                } else {
+                    userInfoEl.textContent = 'Guest User';
+                }
+            }
+
+            if (firstNameInput && lastNameInput) {
+                firstNameInput.addEventListener('input', updateHeaderName);
+                lastNameInput.addEventListener('input', updateHeaderName);
+            }
+
+            // 3. Pre-fill Form if Patient Data exists (e.g. from Login)
+            try {
+                const patientDataStr = sessionStorage.getItem('patientData');
+                if (patientDataStr) {
+                    const patientData = JSON.parse(patientDataStr);
+
+                    // Pre-fill Name
+                    if (firstNameInput && !firstNameInput.value) {
+                        // Split full name if necessary, or use stored fields if available
+                        const names = (patientData.full_name || patientData.first_name || "").split(' ');
+                        if (names.length > 0) firstNameInput.value = names[0];
+                        if (names.length > 1) lastNameInput.value = names.slice(1).join(' ');
+
+                        // Manually trigger name update for header
+                        updateHeaderName();
+                    }
+
+                    // Pre-fill other fields
+                    if (document.getElementById('contactNumber')) {
+                        document.getElementById('contactNumber').value = patientData.contact_number || patientData.mobile_number || '';
+                    }
+                    if (document.getElementById('dob')) {
+                        document.getElementById('dob').value = patientData.dob || '';
+                    }
+                    if (document.getElementById('gender')) {
+                        document.getElementById('gender').value = patientData.gender || '';
+                    }
+                    if (document.getElementById('address')) {
+                        document.getElementById('address').value = patientData.address || '';
+                    }
+                    if (document.getElementById('insuranceProvider')) {
+                        document.getElementById('insuranceProvider').value = patientData.insurance_provider || '';
+                    }
+                }
+            } catch (e) {
+                console.error("Error pre-filling patient data:", e);
+            }
+        });
     </script>
 </body>
 
